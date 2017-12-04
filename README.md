@@ -39,7 +39,6 @@ const catInMyLifeLg = LG.create (
 
 ``` javascript
 const myCat = { name: 'sunshine', color: 'orange' };
-const myLife = { pets : { myCat }};
 
 const catLg = LG.create (
   ['id', 'name',    'color',    'mood' ],   // prop names
