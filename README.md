@@ -23,8 +23,6 @@ const cat = {       // catLensGroup
 Lens groups are created by supplying a list of property names, optional defaults for those properties, and an optional path to the object in the case of nesting
 
 ```javascript
-const myCat = { name: 'sunshine', color: 'orange' };
-
 const catLg = LG.create (
   ['id', 'name',    'color',    'mood' ],   // prop names
   [-1,   'defName', 'defColor', 'defMood' ] // defaults
@@ -46,6 +44,12 @@ const myLife = { pets : { myCat }};
 const catLg = LG.create (
   ['id', 'name',    'color',    'mood' ],   // prop names
   [-1,   'defName', 'defColor', 'defMood' ] // defaults
+);
+
+const catInMyLifeLg = LG.create (
+  ['id', 'name',    'color',    'mood' ],    // prop names
+  [-1,   'defName', 'defColor', 'defMood' ], // defaults
+  [ 'pets', 'myCat']                         // path
 );
 
 LG.view(catLg, 'name', myCat); //=> 'sunshine'
