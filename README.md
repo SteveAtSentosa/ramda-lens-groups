@@ -46,12 +46,6 @@ const catLg = LG.create (
   [-1,   'defName', 'defColor', 'defMood' ] // defaults
 );
 
-const catInMyLifeLg = LG.create (
-  ['id', 'name',    'color',    'mood' ],    // prop names
-  [-1,   'defName', 'defColor', 'defMood' ], // defaults
-  [ 'pets', 'myCat']                         // path
-);
-
 LG.view(catLg, 'name', myCat); //=> 'sunshine'
 LG.view(catLg, 'color', myCat); //=> 'orange'
 LG.view(catLg, 'mood', myCat); //=> 'undefined'
