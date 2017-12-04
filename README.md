@@ -12,7 +12,7 @@ Conceptually, a lens group can be viewed like this:
 ```javascript
 const cat = {       // catLensGroup
   id:    1001,      //  <---- idLens
-  name:  'fuzzball, //  <---- nameLens
+  name:  'fuzzball',//  <---- nameLens
   color: 'black',   //  <---- colorLens
   mood:  'aloof'    //  <---- moodLense
 }
