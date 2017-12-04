@@ -1,0 +1,37 @@
+{
+  "name": "ramda-lens-groups",
+  "version": "1.0.0",
+  "description": "An easy way to manage a set of ramda lenses focused on props of a particular object type",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --require babel-core/register",
+    "testDoc": "babel-node docs/testDocExamples.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SteveAtSentosa/ramda-lens-groups.git"
+  },
+  "keywords": [
+    "ramda",
+    "lens"
+  ],
+  "author": "Steven Saunders",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SteveAtSentosa/ramda-lens-groups/issues"
+  },
+  "homepage": "https://github.com/SteveAtSentosa/ramda-lens-groups#readme",
+  "dependencies": {
+    "ramda": "^0.25.0",
+    "ramda-adjunct": "^2.0.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1",
+    "babel-preset-stage-0": "^6.24.1",
+    "chai": "^4.1.2",
+    "eslint": "^4.11.0",
+    "eslint-plugin-mocha": "^4.11.0",
+    "mocha": "^4.0.1"
+  }
+}
