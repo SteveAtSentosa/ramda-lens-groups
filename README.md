@@ -116,7 +116,7 @@ LG.cloneWithDef(catLg,myCat); //=> { id: -1, name: 'sunshine', color: 'orange', 
 LG.clone(catInMyLifeLg,myLife); //=> { name: 'sunshine', color: 'orange' }
 ```
 
-### Creating you own custom functions
+### Creating your own custom functions
 Lens group operators are curried, so that you can create your own custom functions
 
 ``` javascript
