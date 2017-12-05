@@ -12,7 +12,7 @@ Conceptually, a lens group can be viewed like this:
 ```javascript
 const cat = {       // catLensGroup
   id:    1001,      //  <---- idLens
-  name:  'fuzzball, //  <---- nameLens
+  name:  'fuzzball',//  <---- nameLens
   color: 'black',   //  <---- colorLens
   mood:  'aloof'    //  <---- moodLense
 }
@@ -23,8 +23,6 @@ const cat = {       // catLensGroup
 Lens groups are created by supplying a list of property names, optional defaults for those properties, and an optional path to the object in the case of nesting
 
 ```javascript
-const myCat = { name: 'sunshine', color: 'orange' };
-
 const catLg = LG.create (
   ['id', 'name',    'color',    'mood' ],   // prop names
   [-1,   'defName', 'defColor', 'defMood' ] // defaults
@@ -41,7 +39,6 @@ const catInMyLifeLg = LG.create (
 
 ``` javascript
 const myCat = { name: 'sunshine', color: 'orange' };
-const myLife = { pets : { myCat }};
 
 const catLg = LG.create (
   ['id', 'name',    'color',    'mood' ],   // prop names
@@ -119,7 +116,7 @@ LG.cloneWithDef(catLg,myCat); //=> { id: -1, name: 'sunshine', color: 'orange', 
 LG.clone(catInMyLifeLg,myLife); //=> { name: 'sunshine', color: 'orange' }
 ```
 
-### Creating you own custom functions
+### Creating your own custom functions
 Lens group operators are curried, so that you can create your own custom functions
 
 ``` javascript
