@@ -13,7 +13,7 @@ export default function runLensGroupTests() {
     testPaths();
     testCurry();
     testClone();
-    testSpecializtion();
+    testLensSpecializtion();
   });
 }
 
@@ -34,7 +34,9 @@ function getBaseTestSet() {
     ...testSet,
     myFamily: { myBrother: {hisPets : { brosCat: testSet.brosCat }}},
     catLg: LG.create(testSet.lgProps, testSet.lgDefs),
-    broCatLg: LG.create(testSet.lgProps, testSet.lgDefs, testSet.path)
+    broCatLg: LG.create(testSet.lgProps, testSet.lgDefs, testSet.path),
+    myCatWithDef: { ...testSet.defCat, ... testSet.myCat  },
+    brosCatWithDef: { ...testSet.defCat, ... testSet.brosCat  }
   };
 }
 
@@ -208,6 +210,8 @@ function testPaths() {
       const familyWithColorfulCat = LG.set(broCatLg, 'color', 'purple', myFamily);
       expect(myFamily).to.equal(myFamily);
       expect(myFamily).to.deep.equal(myFamily);
+      expect(familyWithColorfulCat).to.not.equal(myFamily);
+      expect(familyWithColorfulCat).to.not.deep.equal(myFamily);
       expect(LG.viewTarget(broCatLg, myFamily)).to.not.equal(LG.viewTarget(broCatLg, familyWithColorfulCat));
       expect( LG.view(broCatLg, 'color', familyWithColorfulCat )).to.equal('purple');
       expect( LG.view(broCatLg, 'color', myFamily )).to.equal(undefined);
@@ -217,7 +221,7 @@ function testPaths() {
       expect(familyWithColorfulNamedCat).to.not.deep.equal(familyWithColorfulCat);
       expect(LG.viewTarget(broCatLg, familyWithColorfulNamedCat)).to.deep.equal({
         ...brosCat,  color: 'purple', name: 'garfield'  });
-      });
+    });
     it('should return original obj on inavlid inputs',()=> {
       const rougeFamily = LG.set(broCatLg,'rouge-prop', 'does-not-matter', myFamily);
       expect(rougeFamily).to.equal(myFamily);
@@ -280,12 +284,18 @@ function testCurry() {
 function testClone() {
   describe('Lens Cloning', ()=>{
 
-    const { lgProps, catLg, lgDefs, myCat, defCat} = getBaseTestSet();
+    const {
+      lgProps, lgDefs, path, catLg, broCatLg,
+      myCat, brosCat, myFamily, defCat
+     } = getBaseTestSet();
 
     it('Should clone without path or defaults',()=>{
       const clonedCat1 = LG.clone(catLg,myCat);
       expect(clonedCat1).to.not.equal(myCat);
       expect(clonedCat1).to.deep.equal(myCat);
+      expect(LG.def(catLg)).to.deep.equal(defCat);
+      const createDefCat = ()=>LG.def(catLg);
+      expect(createDefCat()).to.deep.equal(defCat);
 
       const cloneCat = LG.clone(catLg);
       const clonedCat2 = cloneCat(clonedCat1);
@@ -293,7 +303,7 @@ function testClone() {
       expect(clonedCat2).to.deep.equal(myCat);
     });
 
-    const myCatWithDefs = {...myCat, id:-1, mood:'defMood'};
+    const myCatWithDefs = {...defCat, ...myCat};
     it('Should clone without path but with defaults',()=>{
       const clonedCatWithDefs = LG.cloneWithDef(catLg,myCat);
       expect(clonedCatWithDefs).to.not.equal(myCat);
@@ -304,11 +314,6 @@ function testClone() {
       expect(clonedCatWithDefs2).to.not.equal(myCat);
       expect(clonedCatWithDefs2).to.deep.equal(myCatWithDefs);
     });
-
-    const path = [ 'myBrother', 'hisPets', 'brosCat'];
-    const broCatLg = LG.create(lgProps, lgDefs, path);
-    const brosCat = { id: 9, mood: 'grumpy' };
-    const myFamily = { myBrother: {hisPets : { brosCat }}};
 
     it('Should clone with path but without defaults',()=>{
       const clonedBrosCat = LG.clone(broCatLg,myFamily);
@@ -332,6 +337,7 @@ function testClone() {
       const clonedBrosCatWithDefs2 = cloneBrosCatWithDefs(myFamily);
       expect(clonedBrosCatWithDefs2).to.not.equal(brosCat);
       expect(clonedBrosCatWithDefs2).to.deep.equal(brosCatWithDefs);
+      expect(LG.def(broCatLg)).to.deep.equal(defCat);
     });
   });
 }
@@ -341,39 +347,58 @@ function testClone() {
 // Test lens group specialization
 //*****************************************************************************
 
-function testSpecializtion() {
+function testLensSpecializtion() {
   describe('Lens group mutations', ()=>{
 
     const {
       lgProps, lgDefs, path, catLg, broCatLg,
-      myCat, brosCat, myFamily, defCat
+      myCat, brosCat, myFamily, defCat, myCatWithDef, brosCatWithDef
      } = getBaseTestSet();
 
-     const newProps = ['size', 'age'];
-     const newDefs = ['defSize']; // Note, providing 1 too few defaults
-     const newCat = {...myCat, age: 99};
-     const newLg = LG.add(catLg, newProps, newDefs );
-
-     const expectedNewDefaultCat = {...defCat, size: 'defSize'};
-     const expectedNewClonedCat = { ...defCat, ...myCat, size: 'defSize'  };
+     const plusProps = ['size', 'age'];
+     const plusDefs = ['defSize']; // Note, providing 1 too few defaults
+     const plusCat = {...myCat, age: 99};
+     const lgPlus = LG.add(catLg, plusProps, plusDefs );
 
      it('should add new, and retain existing lenses', ()=>{
-       expect(LG.view(newLg, 'name', myCat)).to.equal('sunshine');
-       expect(LG.view(newLg, 'size', myCat)).to.equal(undefined);
-       expect(LG.viewOrDef(newLg, 'size', myCat)).to.equal('defSize');
-       expect(LG.viewOrDef(newLg, 'age', myCat)).to.equal(undefined);
-       const cloneNewCatWithDef = LG.cloneWithDef(newLg);
-       expect(cloneNewCatWithDef({})).to.deep.equal(expectedNewDefaultCat);
-       expect(cloneNewCatWithDef(myCat)).to.deep.equal(expectedNewClonedCat);
+
+      const plusCatDefaultExp = {...defCat, size: 'defSize'};
+      const plusCatClonedFromMyCatWithDefExp = { ...myCatWithDef, size: 'defSize'  };
+
+      expect(LG.view(lgPlus, 'name', myCat)).to.equal('sunshine');
+      expect(LG.view(lgPlus, 'size', myCat)).to.equal(undefined);
+      expect(LG.viewOrDef(lgPlus, 'size', myCat)).to.equal('defSize');
+      expect(LG.viewOrDef(lgPlus, 'age', myCat)).to.equal(undefined);
+      expect(LG.viewOrDef(lgPlus, 'age', plusCat)).to.equal(99);
+      expect(LG.def(lgPlus)).to.deep.equal(plusCatDefaultExp);
+      const clonePlusCat = LG.clone(lgPlus);
+      const clonePlusCatWithDef = LG.cloneWithDef(lgPlus);
+      expect(clonePlusCatWithDef({})).to.deep.equal(plusCatDefaultExp);
+      expect(clonePlusCatWithDef(myCat)).to.deep.equal(plusCatClonedFromMyCatWithDefExp);
+      expect(clonePlusCat(plusCat)).to.deep.equal(plusCat);
      });
 
     it('should remove lenses', ()=>{
+      const minusCat = R.dissoc('color',myCat);
+      const minusCatDef = R.dissoc('color',defCat);
+      const lgMinus1 = LG.remove(catLg, ['color']);
+      const lgMinus2 = LG.remove(lgPlus, ['size', 'color']);
+      expect(LG.def(lgMinus1)).to.deep.equal(minusCatDef);
+      expect(LG.def(lgMinus1)).to.deep.equal(LG.def(lgMinus2));
+      expect(LG.view(lgMinus1, 'color',minusCat)).to.equal(undefined);
+      expect(LG.viewOrDef(lgMinus2, 'color',minusCat)).to.equal(undefined);
     });
 
-    it('should specilize path based lense group', ()=>{
-    });
+    it('should add new, and retain existing lenses, with path', ()=>{
+      const brosPlusCatLg = LG.add(broCatLg, ['sex'], ['defSex']);
+      const brosCatPlusDefExp = {...defCat, sex: 'defSex'};
+      expect(LG.def(brosPlusCatLg)).to.deep.equal(brosCatPlusDefExp);
+      const pl = ['1', '2', '3', '4', '5', '6'];
+      const ouch = LG.remove(LG.add(broCatLg, pl), R.reverse(pl));
+      expect(LG.def(ouch)).to.deep.equal(defCat);
+      expect(LG.cloneWithDef(ouch, myFamily)).to.deep.equal(brosCatWithDef);
 
-    it('should udpate the path', ()=>{
+      // TODO: tinker with a creating a lense that transforms my cat to bro cat
     });
   });
 }
