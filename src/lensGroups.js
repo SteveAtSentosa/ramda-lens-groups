@@ -1,45 +1,49 @@
 import R from 'ramda';
 import * as RA from 'ramda-adjunct';
-import { cloneWithFn, isNotInternalProp, addLenses } from './internal';
 import LGU from './utils';
+import {
+  cloneWithFn,
+  isNotInternalProp,
+  updatePath,
+  addLensGroupLenses,
+  addLensGroupInternals,
+  validateLenGroupInputs } from './internal';
+
 
 //*****************************************************************************
 // Lens Group Creation
 //*****************************************************************************
 
+// :fxn: Create a lens group
+//
 // Given a list of property names in propList, create a group of lenses
 // focused on those property names.  defaults for each property name and
 // a path to the target object may be optionally provided.
 // Returns undefined on invalid inputs.
 // ( [''], ['']|u, ['']|u  ) -> {}
-const create = (propList, defaults, path) => {
-
-  // TODO: figure out smoother way to handle error reporting
-  // maybe arg checker fxns that can be piped or composed, that check the args and report errors if any
-
-  const f = 'LG.create()'; let error = false;
-  if ( R.isNil(propList) || LGU.isNotStringArray(propList))
-    (error=true) && console.error(`${f}: propList must be supplied as an array of strings`);
-  if ( RA.isNotNil(defaults) && RA.isNotArray(defaults))
-    (error=true) && console.error(`${f}: defaults must be an array`);
-  if ( RA.isNotNil(path) && LGU.isNotStringArray(path))
-    (error=true) && console.error(`${f}: path must be an array of strings`);
-  if ( error ) return undefined;
-
-  const _path = RA.isNotNil(path) ? path : [];
-  const _viewSelf = LGU.isNonEmptyArray(_path) ? R.view(R.lensPath(_path)) : R.identity;
-
-  return addLenses(propList, defaults, _path, { _path, _viewSelf });
-};
+export const create = (propList, defaults, path) =>
+  // :ex:
+  // const lg = LG.create(['p1', 'p2'], ['def1', 'def2' ], ['path', 'to', 'target']);
+  validateLenGroupInputs('LG.create()', propList, defaults, path) ?
+      R.compose(
+        addLensGroupInternals(path),
+        addLensGroupLenses
+      )(propList, defaults, path) : undefined;
 
 
 //*****************************************************************************
 // Lens Group Operations
 //*****************************************************************************
 
-// View prop on obj, returns undefined if prop does not exist
+// :fxn: View a property
+//
+// View prp on obj using lg.  Returns `undefined` if prop does not exist
 // {lg} -> '' -> {} -> a|undefined
-const view = R.curry((lg, prp, obj) =>
+export const view = R.curry((lg, prp, obj) =>
+  // :ex:
+  // const obj = { p1: 'p1', p2: 'p2' };
+  // const lg = LG.create(['p1', 'p2']);
+  // LG.view(lg,'p1', obj); //=> 'p1'
   RA.isObj(obj) &&
   RA.isObj(lg) &&
   RA.isString(prp) &&
@@ -48,7 +52,7 @@ const view = R.curry((lg, prp, obj) =>
 
 // View prop on obj, returns fallack if prop does not exist
 // {lg} -> '' -> {} -> a|fallback
-const viewOr = R.curry((lg, fallback, prp, obj) =>
+export const viewOr = R.curry((lg, fallback, prp, obj) =>
   RA.isObj(obj) &&
   RA.isObj(lg) &&
   RA.isString(prp) &&
@@ -57,7 +61,7 @@ const viewOr = R.curry((lg, fallback, prp, obj) =>
 
 // View prop on obj, return default if prop does not exist, or undefined if prop was not defaulted
 // {lg} -> '' -> {} -> a|default
-const viewOrDef = R.curry((lg, prp, obj) =>
+export const viewOrDef = R.curry((lg, prp, obj) =>
   RA.isObj(obj) &&
   RA.isObj(lg) &&
   RA.isString(prp) &&
@@ -66,7 +70,7 @@ const viewOrDef = R.curry((lg, prp, obj) =>
 
 // return version of obj with prop set to val, or original obj on invalid inputs
 // {lg} -> '' -> a -> {wont-be-mutated} -> {}
-const set = R.curry((lg, prp, val, obj) =>
+export const set = R.curry((lg, prp, val, obj) =>
   RA.isObj(obj) &&
   RA.isObj(lg) &&
   RA.isString(prp) &&
@@ -76,7 +80,8 @@ const set = R.curry((lg, prp, val, obj) =>
 // Return the value, targeted by lg, within obj
 // Returns  undefined on input errors
 // {lg} -> {} -> a|undefined
-const viewTarget = (lg, obj) => RA.isNotObj(lg) ? undefined : lg._viewSelf(obj);
+export const viewTarget = (lg, obj) =>
+  RA.isNotObj(lg) ? undefined : lg._viewSelf(obj);
 
 
 //*****************************************************************************
@@ -86,16 +91,18 @@ const viewTarget = (lg, obj) => RA.isNotObj(lg) ? undefined : lg._viewSelf(obj);
 // Return copy of toClone based on props targted by lg.
 // Only props that are present on toClone will be copied.
 // {lg} -> {} -> {}
-const clone = (lg, toClone) => cloneWithFn(lg, 'view', LGU.identityOrPlacehoder(toClone));
+export const clone = (lg, toClone) =>
+  cloneWithFn(lg, 'view', LGU.identityOrPlacehoder(toClone));
 
 // Return copy of toClone based on props targted by lg.
 // Props values present on toClone will be copied, otherwise they are defaulted
 // {lg} -> {} -> {}
-const cloneWithDef = (lg, toClone) => cloneWithFn(lg, 'viewOrDef', LGU.identityOrPlacehoder(toClone) );
+export const cloneWithDef = (lg, toClone) =>
+  cloneWithFn(lg, 'viewOrDef', LGU.identityOrPlacehoder(toClone) );
 
 // Return an new object containing all props on the lg, set to defaults
 // {lg} -> {} -> {}
-const def = lg => cloneWithDef(lg, {});
+export const def = lg => cloneWithDef(lg, {});
 
 //*****************************************************************************
 // Lens Group Specialization
@@ -103,35 +110,56 @@ const def = lg => cloneWithDef(lg, {});
 
 // Returns new lens group which includes all of the lenses from lg, plus
 // additional lenses for each property name in propList. defaults can optionally
-// be provided for the new lenses. Returns undefined on input errors.
+// be provided for the new lenses. If a lens in lg already exists for a property name,
+// the existing lens default will will be replaced (or removed when no default supplied)
+// Returns undefined on input errors.
 // {lg} -> ['']|u -> {lg}|u
-const add = (lg, propList, defaults) =>
+export const add = (lg, propList, defaults) =>
   RA.isObj(lg) &&
   LGU.isStringArray(propList)
-    ? addLenses(propList, defaults, lg._path, lg) : undefined;
+    ? addLensGroupLenses(propList, defaults, lg._path, lg) : undefined;
 
 // Return a new lens group, based on the lenses in lg, without lenses
 // to the property names in propList. Returns undefined on input errors
 // {lg} -> [''] -> {lg}
-const remove = (lg, propList) =>
+export const remove = (lg, propList) =>
   RA.isObj(lg) &&
   LGU.isStringArray(propList)
     ? propList.reduce((acc,prp)=>R.dissoc(prp,acc), lg) : undefined;
+
+// Return a new lens group, based on lg, w path appened to lg's path
+// Returns undefined on invalid input
+// [''] -> {lg} -> {lg}
+export const appendPath = (path, lg) =>
+  RA.isObj(lg) &&
+  LGU.isStringArray(path)
+    ? updatePath(R.concat(lg._path, path), lg) : undefined;
+
+// Return a new lens group, based on lg, w path appened to lg's path
+// Returns undefined on invalid input
+// [''] -> {lg} -> {lg}
+export const prependPath = (path, lg) =>
+  RA.isObj(lg) &&
+  LGU.isStringArray(path)
+    ? updatePath(R.concat(path, lg._path), lg) : undefined;
+
+// Return a new lens group, based on lg, w path
+// Returns undefined on invalid input
+// [''] -> {lg} -> {lg}
+export const replacePath = (path, lg) =>
+  RA.isObj(lg) &&
+  LGU.isStringArray(path)
+    ? updatePath(path,lg) : undefined;
 
 
 //*****************************************************************************
 // Misc
 //*****************************************************************************
 
-const path = lg=>lg._path;
+export const path = lg=>lg._path;
 
 //*****************************************************************************
 
-export const LG = {
-  create, view, viewOr, viewOrDef, viewTarget, set,
-  clone, cloneWithDef, def,
-  add, remove,
-  path
-};
+export const LG = module.exports;
 export default LG;
 

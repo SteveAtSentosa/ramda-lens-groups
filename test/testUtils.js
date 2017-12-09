@@ -60,4 +60,22 @@ function testArrayTypes() {
         expect(LGU.isNotObjArray([{}, undefined, {}, {} ])).to.equal(true);
       });
    });
+
+   describe('Arrays Or', ()=> {
+    it('should return empty array',()=>{
+      expect(LGU.stringArrayOrEmpty([{}, {}, {}, '3'])).to.be.an('array').that.is.empty;
+      expect(LGU.stringArrayOrEmpty([])).to.be.an('array').that.is.empty;
+      expect(LGU.stringArrayOrEmpty(undefined)).to.be.an('array').that.is.empty;
+      expect(LGU.stringArrayOrEmpty(null)).to.be.an('array').that.is.empty;
+      expect(LGU.stringArrayOrEmpty(99)).to.be.an('array').that.is.empty;
+      expect(LGU.stringArrayOrEmpty('abc')).to.be.an('array').that.is.empty;
+    });
+    it('should return the original',()=>{
+      const sa1 = ['a', 'b', 'c'];
+      const sa2 = ['d'];
+      expect(LGU.stringArrayOrEmpty(sa1)).to.equal(sa1);
+      expect(LGU.stringArrayOrEmpty(sa2)).to.equal(sa2);
+    });
+   });
+
 }

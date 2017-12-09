@@ -1,4 +1,5 @@
 import LG from '../src/lensGroups';
+import R from 'ramda';
 
 ( function testDocExamples() {
 
@@ -16,7 +17,7 @@ import LG from '../src/lensGroups';
       [ 'pets', 'myCat']                         // path
     );
 
-    console.log("\nindividual props");
+    console.log("\n\nindividual props");
     console.log("---------------------");
 
     LG.view(catLg, 'name', myCat); //=> 'sunshine'
@@ -42,7 +43,7 @@ import LG from '../src/lensGroups';
     console.log(LG.viewOrDef(catLg, 'mood', moodyCat));
     console.log(LG.view(catLg, 'mood', myCat));
 
-    console.log("\nnested objects");
+    console.log("\n\nnested objects");
     console.log("---------------------");
 
     LG.viewOrDef(catInMyLifeLg, 'name', myLife); //=> 'sunshine'
@@ -58,25 +59,43 @@ import LG from '../src/lensGroups';
     console.log(LG.viewOrDef(catInMyLifeLg, 'mood', myLife));
     console.log(LG.viewOrDef(catInMyLifeLg, 'mood', myMoodyLife));
 
-    console.log("\ntarget");
+    console.log("\n\ntarget");
     console.log("---------------------");
     LG.viewTarget(catInMyLifeLg, myLife); //=> { name: 'sunshine', color: 'orange' }
     LG.viewTarget(catInMyLifeLg, myMoodyLife); //=> { name: 'sunshine', color: 'orange', mood: 'grumpy' }
     console.log(LG.viewTarget(catInMyLifeLg, myLife));
     console.log(LG.viewTarget(catInMyLifeLg, myMoodyLife));
-    console.log("\n");
 
-    console.log("\ncloning");
+    console.log("\n\ncloning");
     console.log("---------------------");
+    LG.def(catLg); //=> { id: -1, name: 'defName', color: 'defColor', mood: 'defMood' }
     LG.clone(catLg,myCat); //=> { name: 'sunshine', color: 'orange' }
     LG.cloneWithDef(catLg,myCat); //=> { id: -1, name: 'sunshine', color: 'orange', mood: 'defMood' }
     LG.clone(catInMyLifeLg,myLife); //=> { name: 'sunshine', color: 'orange' }
 
+    console.log(LG.def(catLg));
     console.log(LG.clone(catLg,myCat));
     console.log(LG.cloneWithDef(catLg,myCat));
     console.log(LG.clone(catInMyLifeLg,myLife));
 
-    console.log("\ncustom Functions");
+
+    console.log("\n\nspecializtion");
+    console.log("---------------------");
+
+    const catLgMinus = LG.remove(catLg, ['id', 'mood']);
+    LG.def(catLgMinus); //=> { name: 'defName', color: 'defColor' }
+    const catLgPlus = LG.add(catLg, ['weight'], [99]);
+    LG.def(catLg); //=> { id: -1, name: 'defName', color: 'defColor', mood: 'defMood', weight: 99 }
+
+    const catShow = { houseCats: { myCat } };
+    const myCatInShowLg = LG.prependPath( ['houseCats', 'myCat'], catLg );
+    LG.viewTarget(myCatInShowLg, catShow);//=> { name: 'sunshine', color: 'orange' }
+
+    console.log(LG.def(catLgMinus));
+    console.log(LG.def(catLgPlus));
+    console.log(LG.viewTarget(myCatInShowLg, catShow));
+
+    console.log("\n\ncustom Functions");
     console.log("---------------------");
     const viewCat = LG.view(catLg);
     const viewCatOrDef = LG.viewOrDef(catLg);
@@ -98,5 +117,39 @@ import LG from '../src/lensGroups';
 
     console.log(cloneCat(myCat));
     console.log(cloneCatWithDef(myCat));
+
+    console.log("\n\nPutting it all together");
+    console.log("-------------------------");
+    const runningId = 1000;
+
+    const yourLife = { pets : { yourCat: { id: runningId, name: 'garfield', mood: 'grumpy' }}};
+
+//     const fancyLg = R.compose(
+// //    LG.prependPath(['pets', 'yourCat']),
+//       LG.remove(['id'])
+//     )(catLg);
+
+    // console.log(LG.def(fancyLg));
+
+
+    const newCatfromYourLife = yourLife => {
+
+      const fancyLg = R.compose(
+        LG.prependPath(['pets', 'yourCat']),
+        LG.remove(['id'])
+      )(catLg);
+      console.log(LG.def(fancyLg));
+      return null;
+
+    //   return R.pipe (
+    //     LG.clone(fancyLg).
+    //     LG.addDefs(fancyLg),
+    //     R.assoc( 'id', runningId++ )
+    //   )(yourLife)
+    };
+
+
+
+    console.log('\n');
 
   })();

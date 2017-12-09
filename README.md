@@ -111,12 +111,37 @@ const catInMyLifeLg = LG.create (
   [ 'pets', 'myCat']                         // path
 );
 
+LG.def(catLg); //=> { id: -1, name: 'defName', color: 'defColor', mood: 'defMood' }
 LG.clone(catLg,myCat); //=> { name: 'sunshine', color: 'orange' }
 LG.cloneWithDef(catLg,myCat); //=> { id: -1, name: 'sunshine', color: 'orange', mood: 'defMood' }
 LG.clone(catInMyLifeLg,myLife); //=> { name: 'sunshine', color: 'orange' }
 ```
 
+### Specializing lens groups
+
+A new lens group can be created as a specializaiton of an existing lens group
+
+```javascript
+const myCat = { name: 'sunshine', color: 'orange' };
+
+const catLg = LG.create (
+  ['id', 'name',    'color',    'mood' ],   // prop names
+  [-1,   'defName', 'defColor', 'defMood' ] // defaults
+);
+
+
+const catLgMinus = LG.remove(catLg, ['id', 'mood']);
+LG.def(catLgMinus); //=> { name: 'defName', color: 'defColor' }
+const catLgPlus = LG.add(catLg, ['weight'], [99]);
+LG.def(catLg); //=> { id: -1, name: 'defName', color: 'defColor', mood: 'defMood', weight: 99 }
+
+const catShow = { houseCats: { myCat } };
+const myCatInShowLg = LG.prependPath( ['houseCats', 'myCat'], catLg );
+LG.viewTarget(myCatInShowLg, catShow);//=> { name: 'sunshine', color: 'orange' }
+```
+
 ### Creating your own custom functions
+
 Lens group operators are curried, so that you can create your own custom functions
 
 ``` javascript
@@ -141,28 +166,9 @@ cloneCat(myCat); //=> { name: 'sunshine', color: 'orange' }
 cloneCatWithDef(myCat); //=> { id: -1, name: 'sunshine', color: 'orange', mood: 'defMood' }
 ```
 
-### TBD
-* lens group specializtion
-* composition with lens groups
-* putting it all together
-
-
 ------------------------------------------------------------------------
 
 ### Rough Notes to be incorporated above
-
-Lens groups may be created as specializtions of existing lens groups
-
-```
-const myLife { pets : { myCat }};
-
-catNoIdLg = LG.remove(['id], catLg )
-const catInMyLifeLg = LG.prependPath(['pets', 'myCat'], catNoIdLg)
-
-LG.new (catNoIdLg) // { name: 'defName', color, 'defColor', mood: 'defMood' }
-LG.veiw( catInMyLifeLg, 'name', myLife ) // 'sunshine'
-LG.veiw( catInMyLifeLg, 'id', myLife ) // undefined
-```
 
 Lens group specializations and operations can be composed
 ```
