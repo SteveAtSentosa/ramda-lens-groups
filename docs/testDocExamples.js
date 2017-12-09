@@ -120,35 +120,27 @@ import R from 'ramda';
 
     console.log("\n\nPutting it all together");
     console.log("-------------------------");
-    const runningId = 1000;
+    let runningId = 1000;
 
-    const yourLife = { pets : { yourCat: { id: runningId, name: 'garfield', mood: 'grumpy' }}};
-
-//     const fancyLg = R.compose(
-// //    LG.prependPath(['pets', 'yourCat']),
-//       LG.remove(['id'])
-//     )(catLg);
-
-    // console.log(LG.def(fancyLg));
-
+    const yourCat = { name: 'garfield', mood: 'grumpy', id: runningId,  };
+    const yourLife = { pets :  { yourCat } };
 
     const newCatfromYourLife = yourLife => {
 
       const fancyLg = R.compose(
         LG.prependPath(['pets', 'yourCat']),
-        LG.remove(['id'])
+        LG.remove(R.__, ['id'])
       )(catLg);
-      console.log(LG.def(fancyLg));
-      return null;
 
-    //   return R.pipe (
-    //     LG.clone(fancyLg).
-    //     LG.addDefs(fancyLg),
-    //     R.assoc( 'id', runningId++ )
-    //   )(yourLife)
+      return R.pipe (
+        LG.cloneWithDef(fancyLg),
+        R.assoc( 'id', ++runningId )
+      )(yourLife);
     };
 
-
+    const newCat = newCatfromYourLife(yourLife);
+    console.log('yourCat', yourCat);
+    console.log('newCat', newCat);
 
     console.log('\n');
 

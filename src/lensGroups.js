@@ -114,6 +114,7 @@ export const def = lg => cloneWithDef(lg, {});
 // the existing lens default will will be replaced (or removed when no default supplied)
 // Returns undefined on input errors.
 // {lg} -> ['']|u -> {lg}|u
+// TODO: currying is tricky due to optoinal inputs, see what you can do here
 export const add = (lg, propList, defaults) =>
   RA.isObj(lg) &&
   LGU.isStringArray(propList)
@@ -122,34 +123,35 @@ export const add = (lg, propList, defaults) =>
 // Return a new lens group, based on the lenses in lg, without lenses
 // to the property names in propList. Returns undefined on input errors
 // {lg} -> [''] -> {lg}
-export const remove = (lg, propList) =>
+// TODO: lg should be last for easer composition.  Do this the same time you fix add currying
+export const remove = R.curry((lg, propList) =>
   RA.isObj(lg) &&
   LGU.isStringArray(propList)
-    ? propList.reduce((acc,prp)=>R.dissoc(prp,acc), lg) : undefined;
+    ? propList.reduce((acc,prp)=>R.dissoc(prp,acc), lg) : undefined);
 
 // Return a new lens group, based on lg, w path appened to lg's path
 // Returns undefined on invalid input
 // [''] -> {lg} -> {lg}
-export const appendPath = (path, lg) =>
+export const appendPath = R.curry((path, lg) =>
   RA.isObj(lg) &&
   LGU.isStringArray(path)
-    ? updatePath(R.concat(lg._path, path), lg) : undefined;
+    ? updatePath(R.concat(lg._path, path), lg) : undefined);
 
 // Return a new lens group, based on lg, w path appened to lg's path
 // Returns undefined on invalid input
 // [''] -> {lg} -> {lg}
-export const prependPath = (path, lg) =>
+export const prependPath = R.curry((path, lg) =>
   RA.isObj(lg) &&
   LGU.isStringArray(path)
-    ? updatePath(R.concat(path, lg._path), lg) : undefined;
+    ? updatePath(R.concat(path, lg._path), lg) : undefined);
 
 // Return a new lens group, based on lg, w path
 // Returns undefined on invalid input
 // [''] -> {lg} -> {lg}
-export const replacePath = (path, lg) =>
+export const replacePath = R.curry((path, lg) =>
   RA.isObj(lg) &&
   LGU.isStringArray(path)
-    ? updatePath(path,lg) : undefined;
+    ? updatePath(path,lg) : undefined);
 
 
 //*****************************************************************************
