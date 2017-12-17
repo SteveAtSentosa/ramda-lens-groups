@@ -82,9 +82,9 @@ import R from 'ramda';
     console.log("\n\nspecializtion");
     console.log("---------------------");
 
-    const catLgMinus = LG.remove(catLg, ['id', 'mood']);
+    const catLgMinus = LG.remove(['id', 'mood'], catLg);
     LG.def(catLgMinus); //=> { name: 'defName', color: 'defColor' }
-    const catLgPlus = LG.add(catLg, ['weight'], [99]);
+    const catLgPlus = LG.add(['weight'], [99], catLg);
     LG.def(catLg); //=> { id: -1, name: 'defName', color: 'defColor', mood: 'defMood', weight: 99 }
 
     const catShow = { houseCats: { myCat } };
@@ -120,27 +120,66 @@ import R from 'ramda';
 
     console.log("\n\nPutting it all together");
     console.log("-------------------------");
-    let runningId = 1000;
 
-    const yourCat = { name: 'garfield', mood: 'grumpy', id: runningId,  };
-    const yourLife = { pets :  { yourCat } };
+    const secretCatLg = R.compose(
+      LG.add(['secretName', 'secretPower', 'secretHandShake'], []),
+      LG.remove(['id', 'mood'])
+    )(catLg);
 
-    const newCatfromYourLife = yourLife => {
+    const mySecretCat = R.compose(
+      LG.set(secretCatLg, 'secretName', '009Lives'),
+      LG.set(secretCatLg, 'secretPower', 'clawAttack'),
+      LG.set(secretCatLg, 'secretHandShake', 'pawPound'),
+      LG.cloneWithDef(secretCatLg)
+    )(myCat);
 
-      const fancyLg = R.compose(
-        LG.prependPath(['pets', 'yourCat']),
-        LG.remove(R.__, ['id'])
-      )(catLg);
+    // {
+    //   name: 'sunshine',
+    //   color: 'orange',
+    //   secretHandShake: 'pawPound',
+    //   secretPower: 'clawAttack',
+    //   secretName: '009Lives'
+    // }
 
-      return R.pipe (
-        LG.cloneWithDef(fancyLg),
-        R.assoc( 'id', ++runningId )
-      )(yourLife);
+    console.log('mySecretCat', mySecretCat);
+    const showEntryFormLg = LG.create(['whyParticipating', 'yourCat']);
+
+    const blankShowApplication = {
+      whyParticipating: 'enter your reason for participating here',
+      yourCat: 'put your primped cat here'
     };
 
-    const newCat = newCatfromYourLife(yourLife);
-    console.log('yourCat', yourCat);
-    console.log('newCat', newCat);
+    console.log('blankShowApplication', blankShowApplication);
+
+    const showApplicationBeforePrimping = R.compose(
+      LG.set(showEntryFormLg, 'whyParticipating', 'I like to show my cat off' ),
+      LG.set(showEntryFormLg, 'yourCat', mySecretCat )
+    )(blankShowApplication);
+
+    console.log('showApplicationBeforePrimping', showApplicationBeforePrimping);
+
+    const showCatLg = R.compose(
+      LG.appendPath(['yourCat']),
+      LG.remove(['secretName', 'secretPower', 'secretHandShake']),
+      LG.add(['breed'], ['fancy breed']),
+      LG.add(['mood'], ['sociable'])
+    )(secretCatLg);
+
+    const showApplicationAfterPrimping = LG.setTarget(
+      showCatLg,
+      LG.cloneWithDef(showCatLg, showApplicationBeforePrimping),
+      showApplicationBeforePrimping);
+
+      console.log('showApplicationAfterPrimping', showApplicationAfterPrimping);
+
+
+      const driveToShow = ()=> 'hwy 66, first left after the ocean';
+      const presentAtShow = LG.viewTarget(showCatLg);
+
+      driveToShow();
+      presentAtShow(showApplicationAfterPrimping);
+
+      console.log('presentAtShow', presentAtShow(showApplicationAfterPrimping));
 
     console.log('\n');
 

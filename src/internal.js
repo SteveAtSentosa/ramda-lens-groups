@@ -6,6 +6,17 @@ import { def, create } from './lensGroups';
 export const isInternalProp = key => key.charAt(0) === '_';
 export const isNotInternalProp = R.complement(isInternalProp);
 
+
+// check for lg, report warning if not
+export const isLg = lg => {
+  if ( R.propOr(false, '_lgTag', lg ))
+    return true;
+  else {
+    console.warn('Non lens group supplied for lg operation', lg);
+    return false;
+  }
+};
+
 // Given a list of property names in propList, add lenses to toMe object (or new
 // object if toMe is undefined) that are focused on those property names.
 // Default values for each property name and a path to the target object
@@ -29,10 +40,12 @@ export const addLensGroupLenses = (propList, defaults, path, toMe ) => {
 // Add internal helpers to lg (can be empty {}), given the lg's path
 // [''] -> {} -> {}
 export const addLensGroupInternals = R.curry((path,lg) => {
+  const _lgTag = true;
   const _path = LGU.stringArrayOrEmpty(path);
   const _viewSelf = LGU.isNonEmptyArray(_path) ? R.view(R.lensPath(_path)) : R.identity;
+  const _setSelf = LGU.isNonEmptyArray(_path) ? R.set(R.lensPath(_path)): R.clone;
   return {
-    _path, _viewSelf, ...lg
+    _lgTag, _path, _viewSelf, _setSelf, ...lg
   };
 });
 
@@ -73,3 +86,4 @@ export const validateLenGroupInputs = (f, propList, defaults, path) => {
     }
     return valid;
 };
+

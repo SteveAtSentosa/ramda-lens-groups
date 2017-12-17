@@ -3,8 +3,12 @@
 `ramda-lens-groups` provides a set of utilities meant to help manage the complexity that can
 come along with creating lenses for objects with large sets of properties and nested objects
 
+Full API documentation [here](./docs/api.md)
+
+-------
+
 A lens group is simply a collection of lenses that, as a whole, reference a set of
-properties associated with an object 'type'.  Each lens in the group refers to
+properties associated with an object 'type'.  Each lens in the group is focused on
 a particuliar property.
 
 Conceptually, a lens group can be viewed like this:
@@ -94,7 +98,7 @@ LG.viewTarget(catInMyLifeLg, myLife); //=> { name: 'sunshine', color: 'orange' }
 LG.viewTarget(catInMyLifeLg, myMoodyLife); //=> { name: 'sunshine', color: 'orange', mood: 'grumpy' }
 ```
 
-### Creating and cloneing objects using lens groups
+### Creating and cloning objects using lens groups
 
 ``` javascript
 const myCat = { name: 'sunshine', color: 'orange' };
@@ -130,9 +134,9 @@ const catLg = LG.create (
 );
 
 
-const catLgMinus = LG.remove(catLg, ['id', 'mood']);
+const catLgMinus = LG.remove(['id', 'mood'], catLg);
 LG.def(catLgMinus); //=> { name: 'defName', color: 'defColor' }
-const catLgPlus = LG.add(catLg, ['weight'], [99]);
+const catLgPlus = LG.add(['weight'], [99], catLg);
 LG.def(catLg); //=> { id: -1, name: 'defName', color: 'defColor', mood: 'defMood', weight: 99 }
 
 const catShow = { houseCats: { myCat } };
@@ -166,37 +170,87 @@ cloneCat(myCat); //=> { name: 'sunshine', color: 'orange' }
 cloneCatWithDef(myCat); //=> { id: -1, name: 'sunshine', color: 'orange', mood: 'defMood' }
 ```
 
-------------------------------------------------------------------------
+### Putting it all togehter, a more complex example
 
-### Rough Notes to be incorporated above
+```javascript
+const myCat = { name: 'sunshine', color: 'orange' };
 
-Lens group specializations and operations can be composed
+const catLg = LG.create (
+  ['id', 'name',    'color',    'mood' ],   // prop names
+  [-1,   'defName', 'defColor', 'defMood' ] // defaults
+);
+
+const secretCatLg = R.compose(
+  LG.add(['secretName', 'secretPower', 'secretHandShake'], []),
+  LG.remove(['id', 'mood'])
+)(catLg);
+
+const mySecretCat = R.compose(
+  LG.set(secretCatLg, 'secretName', '009Lives'),
+  LG.set(secretCatLg, 'secretPower', 'clawAttack'),
+  LG.set(secretCatLg, 'secretHandShake', 'pawPound'),
+  LG.cloneWithDef(secretCatLg)
+)(myCat);
+// =>
+// { name: 'sunshine',
+//    color: 'orange',
+//    secretHandShake: 'pawPound',
+//    secretPower: 'clawAttack',
+//    secretName: '009Lives' }
+
+const showEntryFormLg = LG.create(['whyParticipating', 'yourCat']);
+
+const blankShowApplication = {
+  whyParticipating: 'enter your reason for participating here',
+  yourCat: 'put your primped cat here'
+};
+
+const showApplicationBeforePrimping = R.compose(
+  LG.set(showEntryFormLg, 'whyParticipating', 'I like to show my cat off' ),
+  LG.set(showEntryFormLg, 'yourCat', mySecretCat )
+)(blankShowApplication);
+// =>
+// { whyParticipating: 'I like to show my cat off',
+//     yourCat: {
+//       name: 'sunshine',
+//       color: 'orange',
+//       secretHandShake: 'pawPound',
+//       secretPower: 'clawAttack',
+//       secretName: '009Lives' }}
+
+const showCatLg = R.compose(
+  LG.appendPath(['yourCat']),
+  LG.remove(['secretName', 'secretPower', 'secretHandShake']),
+  LG.add(['breed'], ['fancy breed']),
+  LG.add(['mood'], ['sociable'])
+)(secretCatLg);
+
+const showApplicationAfterPrimping = LG.setTarget(
+  showCatLg,
+  LG.cloneWithDef(showCatLg, showApplicationBeforePrimping),
+  showApplicationBeforePrimping);
+//=>
+// { whyParticipating: 'I like to show my cat off',
+//   yourCat: {
+//     name: 'sunshine',
+//     color: 'orange',
+//     mood: 'sociable',
+//     breed: 'fancy breed' } }
+
+const driveToShow = ()=> 'hwy 66, first left after the ocean';
+const presentAtShow = LG.viewTarget(showCatLg);
+
+driveToShow();
+presentAtShow(showApplicationAfterPrimping);
+//=>
+// { name: 'sunshine',
+//   color: 'orange',
+//   mood: 'sociable',
+//   breed: 'fancy breed' }
 ```
-const runningId = 1000;
-const yourLife {
-  pets : { yourCat { name: 'garfield', mood, 'grumpy' }}
-}
 
-newCatfromYourLife = yourLife => {
+Full API doc [here](./docs/api.md)
 
-  const fancyLg = R.compose (
-    LG.prependPath(['pets', 'yourCat'],
-    LG.remove(['id'])
-  )(catLg);
+### TBD
 
-  return R.pipe (
-    LG.clone(fancyLg).
-    LG.addDefs(fancyLg),
-    R.assoc( 'id', runningId++ )
-  )(yourLife)
-}
-
-const myNewCat = newCatfromYourLife(yourLife); // { id: 1000, name: 'garfield', color, 'defColor', mood: 'grumpy' }
-
-// ... in progress
-// Show this as an example later on
-myNewLife = R.pipe (
-  newCatInMyLife(),
-  LG.set(catInMyLifeLg, '',  )
-)(yourLife)
-```
+Add intro to README.md illuminating the usefulness of lenses

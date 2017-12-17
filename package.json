@@ -23,14 +23,14 @@
   "homepage": "https://github.com/SteveAtSentosa/ramda-lens-groups#readme",
   "dependencies": {
     "ramda": "^0.25.0",
-    "ramda-adjunct": "^2.0.0"
+    "ramda-adjunct": "^2.1.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1",
     "babel-preset-stage-0": "^6.24.1",
     "chai": "^4.1.2",
-    "eslint": "^4.11.0",
+    "eslint": "^4.13.1",
     "eslint-plugin-mocha": "^4.11.0",
     "mocha": "^4.0.1"
   }
