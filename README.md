@@ -41,7 +41,7 @@ const catInMyLifeLg = LG.create (
 
 ### Operating on individual properties of an object
 
-``` javascript
+```javascript
 const myCat = { name: 'sunshine', color: 'orange' };
 
 const catLg = LG.create (
@@ -64,7 +64,7 @@ LG.view(catLg, 'mood', myCat); //=> undefined
 
 ### Operating on objects nested within other objects
 
-``` javascript
+```javascript
 const myCat = { name: 'sunshine', color: 'orange' };
 const myLife = { pets : { myCat }};
 
@@ -85,7 +85,7 @@ LG.viewOrDef(catInMyLifeLg, 'mood', myMoodyLife); //=> 'grumpy'
 ### Viewing the lens group target
 
 A lens group can be used to extract the entire target from within a nested object.
-``` javascript
+```javascript
 const catInMyLifeLg = LG.create (
   ['id', 'name',    'color',    'mood' ],    // prop names
   [-1,   'defName', 'defColor', 'defMood' ], // defaults
@@ -100,7 +100,7 @@ LG.viewTarget(catInMyLifeLg, myMoodyLife); //=> { name: 'sunshine', color: 'oran
 
 ### Creating and cloning objects using lens groups
 
-``` javascript
+```javascript
 const myCat = { name: 'sunshine', color: 'orange' };
 const myLife = { pets : { myCat }};
 
@@ -148,7 +148,7 @@ LG.viewTarget(myCatInShowLg, catShow);//=> { name: 'sunshine', color: 'orange' }
 
 Lens group operators are curried, so that you can create your own custom functions
 
-``` javascript
+```javascript
 const myCat = { name: 'sunshine', color: 'orange' };
 const catLg = LG.create (
   ['id', 'name',    'color',    'mood' ],   // prop names
