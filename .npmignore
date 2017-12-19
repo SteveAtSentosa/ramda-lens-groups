@@ -1,0 +1,7 @@
+docs/testApiExamples.js
+docs/testDocExamples.js
+test/
+.babelrc
+.eslintrc
+.gitignore
+package-lock.json

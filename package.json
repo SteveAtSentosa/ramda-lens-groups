@@ -2,6 +2,8 @@
   "name": "ramda-lens-groups",
   "version": "1.0.0",
   "description": "An easy way to manage a set of ramda lenses focused on props of a particular object type",
+  "author": "Steven Saunders",
+  "license": "ISC",
   "main": "index.js",
   "scripts": {
     "test": "mocha --require babel-core/register",
@@ -16,8 +18,6 @@
     "ramda",
     "lens"
   ],
-  "author": "Steven Saunders",
-  "license": "ISC",
   "bugs": {
     "url": "https://github.com/SteveAtSentosa/ramda-lens-groups/issues"
   },
