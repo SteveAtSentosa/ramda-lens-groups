@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha --require babel-core/register",
-    "testDoc": "babel-node docs/testDocExamples.js"
+    "testDocs": "babel-node docs/testDocExamples.js; babel-node docs/testApiExamples.js",
+    "testIndex": "babel-node ./index.js"
   },
   "repository": {
     "type": "git",

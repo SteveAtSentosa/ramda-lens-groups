@@ -22,10 +22,10 @@ import {
 // ( [''], ['']|u, ['']|u  ) -> {}
 export const create = (propList, defaults, path) =>
   validateLenGroupInputs('LG.create()', propList, defaults, path) ?
-      R.compose(
-        addLensGroupInternals(path),
-        addLensGroupLenses
-      )(propList, defaults, path) : undefined;
+    R.compose(
+      addLensGroupInternals(path),
+      addLensGroupLenses
+    )(propList, defaults, path) : undefined;
 
 
 //*****************************************************************************
@@ -124,7 +124,15 @@ export const remove = R.curry((propList, lg) =>
   LGU.isStringArray(propList)
     ? propList.reduce((acc,prp)=>R.dissoc(prp,acc), lg) : undefined);
 
-// Return a new lens group, based on lg, w path appened to lg's path
+// Return a new lens group, based on lg, w path
+// Returns undefined on invalid input
+// [''] -> {lg} -> {lg}
+export const replacePath = R.curry((path, lg) =>
+isLg(lg) &&
+LGU.isStringArray(path)
+  ? updatePath(path,lg) : undefined);
+
+    // Return a new lens group, based on lg, w path appened to lg's path
 // Returns undefined on invalid input
 // [''] -> {lg} -> {lg}
 export const appendPath = R.curry((path, lg) =>
@@ -140,13 +148,6 @@ export const prependPath = R.curry((path, lg) =>
   LGU.isStringArray(path)
     ? updatePath(R.concat(path, lg._path), lg) : undefined);
 
-// Return a new lens group, based on lg, w path
-// Returns undefined on invalid input
-// [''] -> {lg} -> {lg}
-export const replacePath = R.curry((path, lg) =>
-  isLg(lg) &&
-  LGU.isStringArray(path)
-    ? updatePath(path,lg) : undefined);
 
 
 //*****************************************************************************
