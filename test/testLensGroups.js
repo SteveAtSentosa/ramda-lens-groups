@@ -1,7 +1,7 @@
 import  { assert, expect } from 'chai';
 import R from 'ramda';
 import RA from 'ramda-adjunct';
-import LG from '../src/lensGroups';
+import LG from '../src/index';
 
 export default function runLensGroupTests() {
 

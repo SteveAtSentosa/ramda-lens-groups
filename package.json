@@ -1,11 +1,25 @@
 {
   "name": "ramda-lens-groups",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "An easy way to manage a set of ramda lenses focused on props of a particular object type",
   "author": "Steven Saunders",
   "license": "ISC",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "jsnext:main": "es/index.js",
+  "files": [
+    "dist",
+    "lib",
+    "es",
+    "src"
+  ],
   "scripts": {
+    "clean": "rimraf lib dist es",
+    "build:commonjs": "cross-env NODE_ENV=production babel src --out-dir lib",
+    "build:es": "cross-env NODE_ENV=production babel src --out-dir es",
+    "build:umd": "cross-env NODE_ENV=development webpack src/index.js dist/ramda-lens-groups.js",
+    "build:umd:min": "cross-env NODE_ENV=production webpack src/index.js dist/ramda-lens-groups.min.js",
+    "build": "npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:umd:min",
+    "prepublish": "npm run clean && npm test && npm run build",
     "test": "mocha --require babel-core/register",
     "testDocs": "babel-node docs/testDocExamples.js; babel-node docs/testApiExamples.js",
     "testIndex": "babel-node ./index.js"
@@ -28,11 +42,16 @@
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
+    "babel-core": "^6.7.0",
+    "babel-loader": "^7.1.2",
     "babel-preset-env": "^1",
     "babel-preset-stage-0": "^6.24.1",
     "chai": "^4.1.2",
+    "cross-env": "^5.1.1",
     "eslint": "^4.13.1",
     "eslint-plugin-mocha": "^4.11.0",
-    "mocha": "^4.0.1"
+    "mocha": "^4.0.1",
+    "rimraf": "^2.5.2",
+    "webpack": "^3.10.0"
   }
 }
