@@ -1,3 +1,9 @@
+## Import
+
+```javascript
+import LG from 'ramda-lens-groups';
+```
+
 ## Lens Group Creation
 
 #### create
@@ -6,6 +12,7 @@
 // focused on those property names.  defaults for each property name and
 // a path to the target object may be optionally provided.
 // Returns undefined on invalid inputs.
+// ( [''], ['']|u, ['']|u  ) -> {}
 const create = (propList, defaults, path) =>
 
 // example

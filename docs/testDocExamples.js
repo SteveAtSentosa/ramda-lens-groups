@@ -170,16 +170,15 @@ import R from 'ramda';
       LG.cloneWithDef(showCatLg, showApplicationBeforePrimping),
       showApplicationBeforePrimping);
 
-      console.log('showApplicationAfterPrimping', showApplicationAfterPrimping);
+    console.log('showApplicationAfterPrimping', showApplicationAfterPrimping);
 
+    const driveToShow = ()=> 'hwy 66, first left after the ocean';
+    const presentAtShow = LG.viewTarget(showCatLg);
 
-      const driveToShow = ()=> 'hwy 66, first left after the ocean';
-      const presentAtShow = LG.viewTarget(showCatLg);
+    driveToShow();
+    presentAtShow(showApplicationAfterPrimping);
 
-      driveToShow();
-      presentAtShow(showApplicationAfterPrimping);
-
-      console.log('presentAtShow', presentAtShow(showApplicationAfterPrimping));
+    console.log('presentAtShow', presentAtShow(showApplicationAfterPrimping));
 
     console.log('\n');
 
