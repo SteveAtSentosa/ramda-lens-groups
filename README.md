@@ -1,95 +1,18 @@
 # ramda-lens-groups
 
+Full `ramda-lens-group` API documentation is [here](./docs/api.md)
+
 `ramda-lens-groups` provides a set of utilities meant to help manage the complexity that can
-come along with creating lenses for objects with large sets of properties and nested objects.
+come along with creating lenses for objects with large sets of properties and nested objects. The `ramda-lens-groups` implementation relies on [ramda](http://ramdajs.com/) lenses and utilities, and also makes heavy use of [ramda-adjunct](https://char0n.github.io/ramda-adjunct/2.1.0/).  
 
-The `ramda-lens-groups` implementation relies on [ramda](http://ramdajs.com/) lenses and utilities, and also makes heavy use of [ramda-adjunct](https://char0n.github.io/ramda-adjunct/2.1.0/).
+If you want to see why lenses are so handy, have a look [here](#why-lenses)
 
-Full `ramda-lens-group` API documentation is [here](./docs/api.md)
 
-## Why Lenses
 
-Lenses greatly simplify 2 tasks
-* Handling fault tolerant access to values on nested objects
-* Honoring immutability when setting values within nested object
-
-#### Fault tolerant property access
-
-Lets have a look at this old friend, a server response which may or may not be complete
-```javascript
-const rsp1 = { data : {items: ['i1', 'i2']}}; // expected case
-const rsp2 = { data : {items: undefined }};   // oops
-const rsp3 = { data : undefined};             // "
-const rsp4 = undefined;                       // "
-
-console.log(rsp1.data.items.length); //=> 2
-console.log(rsp2.data.items.length); //=> cannot read property 'length' of undefined (doh!)
-console.log((rsp2.data.items||[]).length); //=> 0 (klunky)
-console.log((rsp3.data.items||[]).length); //=> Cannot read property 'items' of undefined (doh!)
-console.log(((rsp3.data||{}).items||[]).length); //=> 0 (super klunky)
-console.log(((rsp4.data||{}).items||[]).length); //=> Cannot read property 'data' of undefined
-console.log((((rsp4||{}).data||{}).items||[]).length); //=> 0 (works for all cases, but klunky^3)
-```
-
-Using `ramda` lenses and a `ramda-adjunct` helper, the klunkiness vanishes.  `RA.viewOr()` which is based on `R.view()` is smart enough to handle a breakage anywhere in the path to the value that you are after.
-```javascript
-const itemsLens = R.lensPath(['data','items']);
-var viewItems = RA.viewOr([], itemsLens); // partially applied fxn, works in all cases
-
-console.log((viewItems(rsp1)).length); //=> 2
-console.log((viewItems(rsp2)).length); //=> 0
-console.log((viewItems(rsp3)).length); //=> 0
-console.log((viewItems(rsp4)).length); //=> 0
-```
-
-#### Honoring immutability when setting object proerties
-
-Lets look at the very common case of immutably updating an exisitng state object
-
-```javascript
-const state = {
-  animals : { dogs: 'fido', cat: 'garfield' },
-  hobby : 'pets'
-};
-
-// The approach below is allot of work and error prone
-// As state gets broader and deeper, it can become a bit of a nightmare
-const newState = {
-  ...state,
-  animals: {
-    dogs: state.animals.dogs,
-    cats: 'tiger'
-  },
-};
-
-console.log(state); //=> { animals: { dogs: 'fido', cat: 'garfield' }, hobby: 'pets'
-console.log(newState); //=> { animals: { dogs: 'fido', cats: 'tiger' }, hobby: 'pets' }
-```
-
-The Ramda lens operation used to set values within nested objects honors immutability.  This is very powerful when managing complex states immutably
-```javascript
-const state = {
-  animals : { dogs: 'fido', cat: 'garfield' },
-  hobby : 'pets'
-};
-
-const catsLens = R.lensPath(['animals', 'cat'] );
-
-// Very straight forward (compare to the 7 liner in the previous example).
-// Does not mutuate state!
-const newState2 = R.set(catsLens, 'tiger' , state );
-
-console.log(state); //=> { animals: { dogs: 'fido', cat: 'garfield' }, hobby: 'pets' }
-console.log(newState2); //=> { animals: { dogs: 'fido', cat: 'tiger' }, hobby: 'pets' }
-```
-
-## Lens Groups
-
-Full `ramda-lens-group` API documentation is [here](./docs/api.md)
 
 A lens group is simply a collection of lenses that, as a whole, reference a set of
 properties associated with an object 'type'.  Each lens in the group is focused on
-a particuliar property.
+a particular property.
 
 Conceptually, a lens group can be visualized like this:
 
@@ -98,7 +21,7 @@ const cat = {       // catLensGroup
   id:    1001,      //  <---- idLens
   name:  'fuzzball',//  <---- nameLens
   color: 'black',   //  <---- colorLens
-  mood:  'aloof'    //  <---- moodLense
+  mood:  'aloof'    //  <---- moodLens
 }
 ```
 
@@ -333,3 +256,80 @@ presentAtShow(showApplicationAfterPrimping);
 
 Full `ramda-lens-group` API documentation is [here](./docs/api.md)
 
+## Why Lenses
+
+Lenses greatly simplify 2 tasks
+* Handling fault tolerant access to values on nested objects
+* Honoring immutability when setting values within nested object
+
+#### Fault tolerant property access
+
+Lets have a look at this old friend, a server response which may or may not be complete
+```javascript
+const rsp1 = { data : {items: ['i1', 'i2']}}; // expected case
+const rsp2 = { data : {items: undefined }};   // oops
+const rsp3 = { data : undefined};             // "
+const rsp4 = undefined;                       // "
+
+console.log(rsp1.data.items.length); //=> 2
+console.log(rsp2.data.items.length); //=> cannot read property 'length' of undefined (doh!)
+console.log((rsp2.data.items||[]).length); //=> 0 (klunky)
+console.log((rsp3.data.items||[]).length); //=> Cannot read property 'items' of undefined (doh!)
+console.log(((rsp3.data||{}).items||[]).length); //=> 0 (super klunky)
+console.log(((rsp4.data||{}).items||[]).length); //=> Cannot read property 'data' of undefined
+console.log((((rsp4||{}).data||{}).items||[]).length); //=> 0 (works for all cases, but klunky^3)
+```
+
+Using `ramda` lenses and a `ramda-adjunct` helper, the klunkiness vanishes.  `RA.viewOr()` which is based on `R.view()` is smart enough to handle a breakage anywhere in the path to the value that you are after.
+```javascript
+const itemsLens = R.lensPath(['data','items']);
+var viewItems = RA.viewOr([], itemsLens); // partially applied fxn, works in all cases
+
+console.log((viewItems(rsp1)).length); //=> 2
+console.log((viewItems(rsp2)).length); //=> 0
+console.log((viewItems(rsp3)).length); //=> 0
+console.log((viewItems(rsp4)).length); //=> 0
+```
+
+#### Honoring immutability when setting object properties
+
+Lets look at the very common case of immutably updating an existing state object
+
+```javascript
+const state = {
+  animals : { dogs: 'fido', cat: 'garfield' },
+  hobby : 'pets'
+};
+
+// The approach below is allot of work and error prone
+// As state gets broader and deeper, it can become a bit of a nightmare
+const newState = {
+  ...state,
+  animals: {
+    dogs: state.animals.dogs,
+    cats: 'tiger'
+  },
+};
+
+console.log(state); //=> { animals: { dogs: 'fido', cat: 'garfield' }, hobby: 'pets'
+console.log(newState); //=> { animals: { dogs: 'fido', cats: 'tiger' }, hobby: 'pets' }
+```
+
+The Ramda lens operation used to set values within nested objects honors immutability.  This is very powerful when managing complex states immutably
+```javascript
+const state = {
+  animals : { dogs: 'fido', cat: 'garfield' },
+  hobby : 'pets'
+};
+
+const catsLens = R.lensPath(['animals', 'cat'] );
+
+// Very straight forward (compare to the 7 liner in the previous example).
+// Does not mutate state!
+const newState2 = R.set(catsLens, 'tiger' , state );
+
+console.log(state); //=> { animals: { dogs: 'fido', cat: 'garfield' }, hobby: 'pets' }
+console.log(newState2); //=> { animals: { dogs: 'fido', cat: 'tiger' }, hobby: 'pets' }
+```
+
+Full `ramda-lens-group` API documentation is [here](./docs/api.md)

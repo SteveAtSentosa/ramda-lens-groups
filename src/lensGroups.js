@@ -41,7 +41,7 @@ export const view = R.curry((lg, prp, obj) =>
   RA.isFunction(lg[prp])
     ? lg[prp].view(obj) : undefined );
 
-// View prop on obj, returns fallack if prop does not exist
+// View prop on obj, returns fallack if prop does not exist or has value of undefined | null
 // {lg} -> '' -> {} -> a|fallback
 export const viewOr = R.curry((lg, fallback, prp, obj) =>
   isLg(lg) &&
@@ -50,7 +50,8 @@ export const viewOr = R.curry((lg, fallback, prp, obj) =>
   RA.isFunction(lg[prp])
     ? lg[prp].viewOr(fallback, obj) : undefined);
 
-// View prop on obj, return default if prop does not exist, or undefined if prop was not defaulted
+// View prop on obj, return default if prop does not exist or has value of undefined | null
+// In the case where default should returned, undefined is returned if the prop has no default
 // {lg} -> '' -> {} -> a|default
 export const viewOrDef = R.curry((lg, prp, obj) =>
   isLg(lg) &&
@@ -160,4 +161,3 @@ export const path = lg=>lg._path;
 
 export const LG = module.exports;
 export default LG;
-

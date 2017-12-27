@@ -96,10 +96,12 @@ function testWithoutDefaults() {
       expect( LG.view(catLg, 'name', myCat )).to.equal('sunshine');
       expect( LG.view(catLg, 'color', myCat )).to.equal('orange');
     });
-
-
     it('should return fallback props if missing',()=>{
       expect( LG.viewOr(catLg, 'fallback-name', 'name', myCat )).to.equal('sunshine');
+      expect( LG.viewOr(catLg, 'fallback-name', 'name', { name : ''} )).to.equal('');
+      expect( LG.viewOr(catLg, 'fallback-name', 'name', { name : null} )).to.equal('fallback-name');
+      expect( LG.viewOr(catLg, 'fallback-name', 'name', { name : undefined} )).to.equal('fallback-name');
+      expect( LG.viewOr(catLg, 'fallback-name', 'name', undefined)).to.equal(undefined);
       expect( LG.viewOr(catLg, 'fallback-id', 'id', myCat )).to.equal('fallback-id');
       expect( LG.viewOr(catLg, 'fallback-mood', 'mood', myCat )).to.equal('fallback-mood');
     });
@@ -146,8 +148,12 @@ function testWithDefaults() {
     it('should not default existing props',()=>{
       expect( LG.viewOrDef(catLg, 'name', myCat )).to.equal('sunshine');
       expect( LG.viewOrDef(catLg, 'color', myCat )).to.equal('orange');
+      expect( LG.viewOrDef(catLg, 'name', { name: '' } )).to.equal('');
     });
     it('should default non-existing props',()=>{
+      expect( LG.viewOrDef(catLg, 'name', { name: null } )).to.equal('defName');
+      expect( LG.viewOrDef(catLg, 'name', { name: undefined } )).to.equal('defName');
+      expect( LG.viewOrDef(catLg, 'name', undefined )).to.equal(undefined);
       expect( LG.viewOrDef(catLg, 'id', myCat )).to.equal(-1);
       expect( LG.viewOrDef(catLg, 'mood', myCat )).to.equal('defMood');
       const moodyCat = LG.set(catLg,'mood', 'happy', myCat);
@@ -158,11 +164,6 @@ function testWithDefaults() {
       const lg2 = LG.create(lgProps, lgDefs2);
       expect( LG.viewOrDef(lg2, 'name', myCat )).to.equal('sunshine');
       expect( LG.viewOrDef(lg2, 'mood', myCat )).to.equal(undefined);
-    });
-    it('should fallback non-existing props',()=>{
-      expect( LG.viewOr(catLg, 'fallback-name', 'name', myCat )).to.equal('sunshine');
-      expect( LG.viewOr(catLg, 'fallback-id', 'id', myCat )).to.equal('fallback-id');
-      expect( LG.viewOr(catLg, 'fallback-mood', 'mood', myCat )).to.equal('fallback-mood');
     });
     it('should return undefined for missing props, misnamed props, non obj target',()=>{
       expect( LG.viewOrDef(catLg, 'rouge-prop', myCat )).to.equal(undefined);

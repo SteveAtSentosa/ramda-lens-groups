@@ -38,7 +38,7 @@ LG.view(lg2, 'p2', obj2); //=> 'p2val'
 
 #### viewOr
 ```javascript
-// View prop on obj, returns fallack if prop does not exist
+// View prop on obj, returns fallack if prop does not exist or has value of undefined | null
 // {lg} -> '' -> {} -> a|fallback
 const viewOr = R.curry((lg, fallback, prp, obj) =>
 
@@ -50,7 +50,8 @@ LG.viewOr(lg, 'fb', 'p2', obj); //=> 'fb'
 
 #### viewOrDef
 ```javascript
-// View prop on obj, return default if prop does not exist, or undefined if prop was not defaulted
+// View prop on obj, return default if prop does not exist or has value of undefined | null
+// In the case where default should returned, undefined is returned if the prop has no default
 // {lg} -> '' -> {} -> a|default
 const viewOrDef = R.curry((lg, prp, obj) =>
 
@@ -224,4 +225,3 @@ LG.view(lg2, 'p1', obj); //=> 'p1val'
 // Return the path of an lg
 const path = lg =>
 ```
-

@@ -30,9 +30,11 @@ export const addLensGroupLenses = (propList, defaults, path, toMe ) => {
     let next = R.merge(acc, {[prp]:R.lensPath(propPath)});
     next[prp].set = R.set(next[prp]);
     next[prp].view = R.view(next[prp]);
-    next[prp].viewOr = RA.viewOr(R.__, next[prp]);
-    next[prp].viewOrDef =  LGU.arrayEntryIsNotNil(i, defaults) ?
-      RA.viewOr(defaults[i], next[prp]) : R.view(next[prp]);
+    next[prp].viewOr = (fallback, obj) => R.isNil(R.view(next[prp],obj||{})) ?
+      fallback : R.view(next[prp],obj),   // fallback on non-nil props
+    next[prp].viewOrDef = obj => LGU.arrayEntryIsNil(i, defaults) ?
+      R.view(next[prp], obj) : // straight view if no default val present
+      R.isNil(R.view(next[prp],obj||{})) ? defaults[i] : R.view(next[prp], obj); // default on non-nil props
     return next;
     } , R.isNil(toMe) ? {}:toMe) ;
 };
@@ -86,4 +88,3 @@ export const validateLenGroupInputs = (f, propList, defaults, path) => {
     }
     return valid;
 };
-

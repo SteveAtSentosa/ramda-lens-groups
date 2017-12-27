@@ -6,6 +6,7 @@ export const identityOrPlacehoder = R.when(R.isNil, ()=>R.__);
 
 // Array checks
 export const arrayEntryIsNotNil = (i,a)=> RA.isArray(a) && RA.isNotNil(a[i]);
+export const arrayEntryIsNil = R.complement(arrayEntryIsNotNil);
 export const isNonEmptyArray = v => RA.isArray(v) && RA.isNotEmpty(v);
 export const stringArrayOrEmpty = v => isStringArray(v) ? v : [];
 
