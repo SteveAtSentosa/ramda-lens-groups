@@ -1,3 +1,5 @@
+//TODO: add tests for props / defaults with values 0, '', null, and undefined
+
 import  { assert, expect } from 'chai';
 import R from 'ramda';
 import RA from 'ramda-adjunct';
@@ -6,6 +8,7 @@ import LG from '../src/index';
 export default function runLensGroupTests() {
 
   describe('Test Lens Groups', ()=>{
+    // tinker();
     testInvalidArgs();
     testWithoutDefaults();
     testWithDefaults();
@@ -18,6 +21,10 @@ export default function runLensGroupTests() {
     testLensPathSpecialization();
     testMutability();
   });
+}
+
+
+function tinker() {
 }
 
 //*****************************************************************************

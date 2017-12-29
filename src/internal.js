@@ -67,7 +67,7 @@ export const updatePath = R.curry((path,lg) => {
 export const cloneWithFn = R.curry((lg, fxnName, toClone) => {
   return R.keys(lg).filter(isNotInternalProp).reduce((acc, prp) => {
     const view = lg[prp][fxnName];
-    return view(toClone) ? { ...acc, [prp]: R.clone(view(toClone)) }: acc;
+    return view(toClone) !== undefined ? { ...acc, [prp]: R.clone(view(toClone)) }: acc;
   },{});
 });
 
