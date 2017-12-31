@@ -29,7 +29,7 @@ export const create = (propList, defaults, path) =>
 
 
 //*****************************************************************************
-// Lens Group Operations
+// Lens Group View/Set Operations
 //*****************************************************************************
 
 // View prp on obj using lg.  Returns `undefined` if prop does not exist
@@ -41,6 +41,15 @@ export const view = R.curry((lg, prp, obj) =>
   RA.isFunction(lg[prp])
     ? lg[prp].view(obj) : undefined );
 
+// Return an object which contains 'views' of all of the propNames
+// in propList that are on lg.  propNames not on lg won't be included.
+// propNames not on obj will have val of undefined
+// {lg} -> [''] -> {} -> {}
+export const viewL = R.curry((lg, propList, obj) =>
+  LGU.isStringArray(propList) ?
+    propList.reduce((acc,prp)=>
+      R.assoc(prp, view(lg,prp,obj), acc), {}) : obj);
+
 // View prop on obj, returns fallack if prop does not exist or has value of undefined | null
 // {lg} -> '' -> {} -> a|fallback
 export const viewOr = R.curry((lg, fallback, prp, obj) =>
@@ -49,6 +58,15 @@ export const viewOr = R.curry((lg, fallback, prp, obj) =>
   RA.isString(prp) &&
   RA.isFunction(lg[prp])
     ? lg[prp].viewOr(fallback, obj) : undefined);
+
+// Return an object which contains 'views' of all of the propNames
+// in propList that are on lg.  propNames not on lg won't be included.
+// propNames not on obj will be given the associated value in fallbackList
+// {lg} -> [''] -> [''] -> {} -> {}
+export const viewOrL = R.curry((lg, fallbackList, propList, obj) =>
+  LGU.isStringArray(propList) ?
+    propList.reduce((acc,prp,i) =>
+      R.assoc(prp, viewOr(lg, LGU.arrayEntryOrUndef(i,fallbackList), prp, obj), acc), {}) : obj);
 
 // View prop on obj, return default if prop does not exist or has value of undefined | null
 // In the case where default should returned, undefined is returned if the prop has no default
@@ -60,6 +78,15 @@ export const viewOrDef = R.curry((lg, prp, obj) =>
   RA.isFunction(lg[prp])
    ? lg[prp].viewOrDef(obj) : undefined);
 
+// Return an object which contains 'views' of all of the propNames
+// in propList that are on lg.  propNames not on lg won't be included.
+// propNames not on obj will be given default values
+// {lg} -> [''] -> {} -> {}
+export const viewOrDefL = R.curry((lg, propList, obj) =>
+  LGU.isStringArray(propList) ?
+    propList.reduce((acc,prp)=>
+      R.assoc(prp, viewOrDef(lg,prp,obj), acc), {}) : obj);
+
 // return version of obj with prop set to val, or original obj on invalid inputs
 // {lg} -> '' -> a -> {wont-be-mutated} -> {}
 export const set = R.curry((lg, prp, val, obj) =>
@@ -68,6 +95,25 @@ export const set = R.curry((lg, prp, val, obj) =>
   RA.isString(prp) &&
   RA.isFunction(lg[prp])
     ? lg[prp].set(val,obj) : obj);
+
+// Return version of obj with lg props in propList set to vals in vallist,
+// Returns original obj on invalid inputs.
+// {lg} -> [''] -> [a] -> {wont-be-mutated} -> {}
+export const setL = R.curry((lg, propList, valList, obj) =>
+  LGU.isStringArray(propList) ?
+    propList.reduce((acc,prp,i)=>
+      set(lg, prp, LGU.arrayEntryOrUndef(i,valList), acc), obj) : obj);
+
+// Return version of obj with lg props on propsToSet set to vals  on propsToSet
+// Returns original obj on invalid inputs.
+// {lg} -> {} -> {wont-be-mutated} -> {}
+export const setO = R.curry((lg, propsToSet, obj) =>
+  RA.isObj(propsToSet) ? setL(lg, R.keys(propsToSet), R.values(propsToSet), obj): obj);
+
+//*****************************************************************************
+// Lens Group Target Operations
+//*****************************************************************************
+
 
 // Return the value, targeted by lg, within obj
 // Returns  undefined on input errors
@@ -98,9 +144,35 @@ export const clone = (lg, toClone) =>
 export const cloneWithDef = (lg, toClone) =>
   cloneWithFn(lg, 'viewOrDef', LGU.identityOrPlacehoder(toClone) );
 
+// Return copy of toClone based on props targted by lg.
+// Props values present on toClone will be copied.
+// Missing props are defaluted, except for those in noDefProps.
+// {lg} -> {} -> {}
+export const cloneWithDefExcept = R.curry((lg, noDefProps, toClone) =>
+    ({ ...LG.def(LG.remove(noDefProps, lg )), ...toClone})) ;
+
 // Return an new object containing all props on the lg, set to defaults
 // {lg} -> {} -> {}
 export const def = lg => cloneWithDef(lg, {});
+
+// Return a new object, with all of the original props on obj, plus
+// defaults for props that are on lg but not on obj
+// Returns original obj on input errors
+// {lg} -> {} -> {}
+export const addDef = (lg, obj) =>
+  isLg(lg) &&
+  RA.isObj(obj)
+    ? ({ ...LG.def(lg), ...obj}) : obj;
+
+// Return an new object, with all of the original props on obj, plus
+// defaults for props that are on lg but not on obj and are not in noDefProps
+// Returns original obj on input errors
+// {lg} -> [''] -> {} -> {}
+export const addDefExcept = (lg, noDefProps, obj) =>
+  isLg(lg) &&
+  RA.isObj(obj) &&
+  LGU.isStringArray(noDefProps)
+    ? addDef(remove(noDefProps, lg), obj) : obj;
 
 //*****************************************************************************
 // Lens Group Specialization
@@ -133,7 +205,7 @@ isLg(lg) &&
 LGU.isStringArray(path)
   ? updatePath(path,lg) : undefined);
 
-    // Return a new lens group, based on lg, w path appened to lg's path
+// Return a new lens group, based on lg, w path appened to lg's path
 // Returns undefined on invalid input
 // [''] -> {lg} -> {lg}
 export const appendPath = R.curry((path, lg) =>
@@ -148,8 +220,6 @@ export const prependPath = R.curry((path, lg) =>
   isLg(lg) &&
   LGU.isStringArray(path)
     ? updatePath(R.concat(path, lg._path), lg) : undefined);
-
-
 
 //*****************************************************************************
 // Misc

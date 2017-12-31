@@ -1,5 +1,3 @@
-//TODO: add tests for props / defaults with values 0, '', null, and undefined
-
 import  { assert, expect } from 'chai';
 import R from 'ramda';
 import RA from 'ramda-adjunct';
@@ -8,24 +6,22 @@ import LG from '../src/index';
 export default function runLensGroupTests() {
 
   describe('Test Lens Groups', ()=>{
-    // tinker();
     testInvalidArgs();
     testWithoutDefaults();
     testWithDefaults();
+    testListOperations();
     testLensTargetView();
     testLensTargetSet();
     testPaths();
     testCurry();
     testClone();
+    testDefaultAdd();
     testLensPropSpecialization();
     testLensPathSpecialization();
     testMutability();
   });
 }
 
-
-function tinker() {
-}
 
 //*****************************************************************************
 // Base testing dataset
@@ -82,7 +78,6 @@ function testInvalidArgs() {
       // export const replacePath = R.curry((path, lg) =>
       });
   });
-
 }
 
 //*****************************************************************************
@@ -120,6 +115,12 @@ function testWithoutDefaults() {
       expect( LG.view(catLg, 'rouge-prop', 9 )).to.equal(undefined);
       expect(LG.viewOr(catLg, 'rouge-prop', 'doesnt-matter', myCat )).to.equal(undefined);
       expect(LG.viewOr(catLg, 'name', 'doesnt-matter', 9 )).to.equal(undefined);
+    });
+    it('should handle falsy values correctly',()=> {
+      const falsey = { undef: undefined, nul: null, zero: 0, emptyStr: '' };
+      const lg = LG.create( [ 'undef', 'nul', 'zero', 'emptyStr' ]);
+      expect(LG.clone(lg, falsey)).to.deep.equal(R.dissoc('undef', falsey));
+      expect(LG.viewOr(lg, 'u', 'undef', falsey)).to.equal('u');
     });
     it('should immutably set prop',()=>{
       const renamedCat = LG.set(catLg,'name', 'thunder', myCat);
@@ -176,6 +177,70 @@ function testWithDefaults() {
       expect( LG.viewOrDef(catLg, 'rouge-prop', myCat )).to.equal(undefined);
       expect( LG.viewOrDef(catLg, 'name', 'myCat' )).to.equal(undefined);
       expect( LG.viewOrDef(catLg, 'rouge-prop', 9 )).to.equal(undefined);
+    });
+    it('should handle falsy values correctly',()=> {
+      const falsey = { undef: undefined, nul: null, zero: 0, emptyStr: '' };
+      const lg = LG.create( [ 'undef', 'nul', 'zero', 'emptyStr' ], [ undefined, null, 0, '' ]);
+      expect(LG.viewOrDef(lg, 'undef', falsey)).to.equal(undefined);
+      expect(LG.viewOrDef(lg, 'undef', {})).to.equal(undefined);
+      expect(LG.viewOrDef(lg, 'zero', falsey)).to.equal(0);
+      expect(LG.viewOrDef(lg, 'zero', {})).to.equal(0);
+      expect(LG.viewOrDef(lg, 'emptyStr', falsey)).to.equal('');
+      expect(LG.viewOrDef(lg, 'emptyStr', {})).to.equal('');
+      // TODO: null not being handled properly, get the following tests to pass
+      // expect(LG.viewOrDef(lg, 'null', falsey)).to.equal(null);
+      // expect(LG.viewOrDef(lg, 'null', {})).to.equal(null);
+    });
+
+  });
+}
+
+//*****************************************************************************
+// Test list based lens group operations
+//*****************************************************************************
+
+function testListOperations() {
+
+  const {
+    lgProps, lgDefs, catLg, broCatLg,
+    myCat, brosCat, defCat, myCatWithDef
+   } = getBaseTestSet();
+
+  describe('List based lens operations', ()=>{
+    it('should return object with specified props',()=>{
+      expect(LG.viewL(catLg, ['name', 'color'], myCat)).to.deep.equal(myCat);
+      expect(LG.viewL(catLg, ['name', 'color'], myCat)).to.not.equal(myCat);
+      expect(LG.viewL(catLg, ['name', 'color'], {...brosCat, ...myCat})).to.deep.equal(myCat);
+      expect(LG.viewL(catLg, ['color', 'mood'], myCat)).to.deep.equal({mood: undefined, color: myCat.color});
+      const catViewL = LG.viewL(catLg);
+      expect(catViewL(['name', 'color'], {...brosCat, ...myCat})).to.deep.equal(myCat);
+      const catViewNameColor = LG.viewL(catLg, ['name', 'color']);
+      expect(catViewNameColor({...brosCat, ...myCat})).to.deep.equal(myCat);
+
+    });
+    it('should return object with specified props or fallback',()=>{
+      expect(LG.viewOrL(catLg, ['fb-id', 'fb-color' ], ['id', 'color'], brosCat))
+        .to.deep.equal({id: brosCat.id, color: 'fb-color'});
+      const catViewMoodColorNameOrFb = LG.viewOrL(catLg, ['fb-mood', 'fb-color', 'fb-name' ], ['mood', 'color', 'name']);
+      const fb = {mood: 'fb-mood', color: 'fb-color', name: 'fb-name'};
+      expect(catViewMoodColorNameOrFb(myCat)).to.deep.equal({...fb, ...myCat});
+      expect(catViewMoodColorNameOrFb(brosCat)).to.deep.equal({...fb, ...R.dissoc('id', brosCat)});
+    });
+    it('should return object with specified props or default',()=>{
+      expect(LG.viewOrDefL(catLg, ['id', 'color'], myCat)).to.deep.equal({id: defCat.id, color: myCat.color});
+      const viewCatOrDefL = LG.viewOrDefL(catLg);
+      expect(viewCatOrDefL(lgProps,{})).to.deep.equal(LG.def(catLg));
+      expect(viewCatOrDefL(lgProps,myCat)).to.deep.equal(myCatWithDef);
+    });
+    it('should set specified props to specified vals',()=>{
+      expect(LG.setL(catLg, ['name', 'mood'], ['newName', 'newMood'], myCat))
+        .to.deep.equal({...myCat, name: 'newName', mood: 'newMood'});
+      expect(LG.setL(catLg, ['id', 'mood'], [brosCat.id, brosCat.mood], myCat))
+        .to.deep.equal({...myCat, ...brosCat});
+      expect(LG.setO(catLg, myCat, brosCat))
+        .to.deep.equal({...myCat, ...brosCat});
+      expect(LG.setO(catLg, { color: 'blue', mood: 'frisky', id: 99 }, myCat))
+        .to.deep.equal({...myCat, color: 'blue', mood: 'frisky', id: 99});
     });
   });
 }
@@ -432,9 +497,46 @@ function testClone() {
       expect(clonedBrosCatWithDefs2).to.deep.equal(brosCatWithDefs);
       expect(LG.def(broCatLg)).to.deep.equal(defCat);
     });
+    it('Should clone with defs except excluded',()=>{
+      const cloneCatWithDefExcept = LG.cloneWithDefExcept(catLg);
+      const someDefs1 = cloneCatWithDefExcept(['mood'], myCat);
+      expect(someDefs1).to.deep.equal({...R.dissoc('mood', defCat), ...myCat, });
+      const someDefs2 = cloneCatWithDefExcept(['id'], myCat);
+      expect(someDefs2).to.deep.equal({...R.dissoc('id', defCat), ...myCat, });
+      const someDefs3 = cloneCatWithDefExcept(['id', 'mood'], myCat);
+      expect(someDefs3).to.deep.equal(myCat);
+    });
   });
 }
 
+//*****************************************************************************
+// Test lens group default additionss
+//*****************************************************************************
+
+function testDefaultAdd() {
+
+  const {
+    lgProps, catLg, broCatLg,
+    myCat, defCat, brosCat, myFamily, familyPath
+  } = getBaseTestSet();
+
+  describe('Default additions', ()=>{
+
+    it('should add defaults',()=>{
+      expect(LG.addDef(catLg, {})).to.deep.equal(defCat);
+      const catAdds = { numPaws: 4, age: 'ageless' };
+      expect(LG.addDef(catLg, {...catAdds, ...myCat}))
+        .to.deep.equal({...defCat, ...catAdds, ...myCat});
+      expect(LG.addDef(catLg, {...catAdds, ...brosCat}))
+        .to.deep.equal({...defCat, ...catAdds, ...brosCat});
+      expect(LG.addDefExcept(catLg, ['mood'], {...catAdds, ...myCat}))
+        .to.deep.equal(R.dissoc('mood', {...defCat, ...catAdds, ...myCat}));
+      expect(LG.addDefExcept(catLg, ['name', 'color'], catAdds))
+        .to.deep.equal(R.compose(R.dissoc('name'), R.dissoc('color'))({...defCat, ...catAdds}));
+      expect(LG.addDefExcept(catLg, lgProps, catAdds)).to.deep.equal(catAdds);
+    });
+  });
+}
 
 //*****************************************************************************
 // Test lens group prop specialization
