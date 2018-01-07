@@ -265,6 +265,14 @@ console.log(objNext); //=> { p0: 'p0val', p1: 'p1val', p2: 'p2def' }
 // Returns original obj on input errors
 // {lg} -> [''] -> {} -> {}
 export const addDefExcept = (lg, noDefProps, obj) =>
+
+// example
+const lg = LG.create(['p1', 'p2'], ['p1def', 'p2def']);
+const obj = { };
+const objNext = LG.addDefExcept(lg,['p2'], obj);
+
+console.log(obj); //=> {}
+console.log(objNext); //=> { p1: 'p1def' }
 ```
 
 ## Lens Group Specialization
