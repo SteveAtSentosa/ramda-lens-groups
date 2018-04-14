@@ -222,10 +222,22 @@ export const prependPath = R.curry((path, lg) =>
     ? updatePath(R.concat(path, lg._path), lg) : undefined);
 
 //*****************************************************************************
+// type checking
+//*****************************************************************************
+
+// NOTE: experimental: these are not currently documented or in test the suite
+export const isFn = R.curry((lg, prop, obj)=> R.compose(RA.isFunction, view)(lg, prop, obj));
+export const isStr = R.curry((lg, prop, obj)=> R.compose(RA.isString, view)(lg, prop, obj));
+
+//*****************************************************************************
 // Misc
 //*****************************************************************************
 
 export const path = lg=>lg._path;
+
+
+
+
 
 //*****************************************************************************
 
