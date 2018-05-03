@@ -4,7 +4,6 @@ import LGU from './utils';
 import {
   isLg,
   cloneWithFn,
-  isNotInternalProp,
   updatePath,
   addLensGroupLenses,
   addLensGroupInternals,
@@ -119,14 +118,14 @@ export const setO = R.curry((lg, propsToSet, obj) =>
 // Returns  undefined on input errors
 // {lg} -> {} -> a|undefined
 export const viewTarget = R.curry((lg, obj) =>
-  isLg(lg) ? lg._viewSelf(obj) : undefined);
+  isLg(lg) ? lg._$_viewSelf(obj) : undefined);
 
 // return version of obj with the lg target set to targetVal.
 // clone of targetVal returned if lg has no path
 // Returns undefined on input errors
 // {lg} -> {} -> {wont-be-mutated} -> {}
 export const setTarget = R.curry((lg, targetVal, obj) =>
-  isLg(lg) ? lg._setSelf(targetVal, obj) : undefined);
+  isLg(lg) ? lg._$_setSelf(targetVal, obj) : undefined);
 
 //*****************************************************************************
 // Cloning Objects With Lens Groups
@@ -187,7 +186,7 @@ export const addDefExcept = (lg, noDefProps, obj) =>
 export const add = R.curry((propList, defaults, lg) =>
   isLg(lg) &&
   LGU.isStringArray(propList)
-    ? addLensGroupLenses(propList, defaults, lg._path, lg) : undefined);
+    ? addLensGroupLenses(propList, defaults, lg._$_path, lg) : undefined);
 
 // Return a new lens group, based on the lenses in lg, without lenses
 // to the property names in propList. Returns undefined on input errors
@@ -211,7 +210,7 @@ LGU.isStringArray(path)
 export const appendPath = R.curry((path, lg) =>
   isLg(lg) &&
   LGU.isStringArray(path)
-    ? updatePath(R.concat(lg._path, path), lg) : undefined);
+    ? updatePath(R.concat(lg._$_path, path), lg) : undefined);
 
 // Return a new lens group, based on lg, w path appened to lg's path
 // Returns undefined on invalid input
@@ -219,7 +218,7 @@ export const appendPath = R.curry((path, lg) =>
 export const prependPath = R.curry((path, lg) =>
   isLg(lg) &&
   LGU.isStringArray(path)
-    ? updatePath(R.concat(path, lg._path), lg) : undefined);
+    ? updatePath(R.concat(path, lg._$_path), lg) : undefined);
 
 //*****************************************************************************
 // type checking
@@ -233,7 +232,7 @@ export const isStr = R.curry((lg, prop, obj)=> R.compose(RA.isString, view)(lg, 
 // Misc
 //*****************************************************************************
 
-export const path = lg=>lg._path;
+export const path = lg=>lg._$_path;
 
 
 

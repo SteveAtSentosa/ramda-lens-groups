@@ -3,13 +3,13 @@ import * as RA from 'ramda-adjunct';
 import LGU from './utils';
 import { def, create } from './lensGroups';
 
-export const isInternalProp = key => key.charAt(0) === '_';
+export const isInternalProp = key => key.substring(0,3)  === '_$_';
 export const isNotInternalProp = R.complement(isInternalProp);
 
 
 // check for lg, report warning if not
 export const isLg = lg => {
-  if ( R.propOr(false, '_lgTag', lg ))
+  if ( R.propOr(false, '_$_lgTag', lg ))
     return true;
   else {
     console.warn('Non lens group supplied for lg operation', lg);
@@ -42,12 +42,12 @@ export const addLensGroupLenses = (propList, defaults, path, toMe ) => {
 // Add internal helpers to lg (can be empty {}), given the lg's path
 // [''] -> {} -> {}
 export const addLensGroupInternals = R.curry((path,lg) => {
-  const _lgTag = true;
-  const _path = LGU.stringArrayOrEmpty(path);
-  const _viewSelf = LGU.isNonEmptyArray(_path) ? R.view(R.lensPath(_path)) : R.identity;
-  const _setSelf = LGU.isNonEmptyArray(_path) ? R.set(R.lensPath(_path)): R.clone;
+  const _$_lgTag = true;
+  const _$_path = LGU.stringArrayOrEmpty(path);
+  const _$_viewSelf = LGU.isNonEmptyArray(_$_path) ? R.view(R.lensPath(_$_path)) : R.identity;
+  const _$_setSelf = LGU.isNonEmptyArray(_$_path) ? R.set(R.lensPath(_$_path)): R.clone;
   return {
-    _lgTag, _path, _viewSelf, _setSelf, ...lg
+    _$_lgTag, _$_path, _$_viewSelf, _$_setSelf, ...lg
   };
 });
 
