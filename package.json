@@ -1,6 +1,6 @@
 {
   "name": "ramda-lens-groups",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "An easy way to manage a set of ramda lenses focused on props of a particular object type",
   "author": "Steven Saunders",
   "license": "ISC",
