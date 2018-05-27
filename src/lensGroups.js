@@ -141,14 +141,14 @@ export const clone = (lg, toClone) =>
 // Props values present on toClone will be copied, otherwise they are defaulted
 // {lg} -> {} -> {}
 export const cloneWithDef = (lg, toClone) =>
-  cloneWithFn(lg, 'viewOrDef', LGU.identityOrPlacehoder(toClone) );
+  cloneWithFn(lg, 'viewOrDef', LGU.identityOrPlacehoder(toClone));
 
 // Return copy of toClone based on props targted by lg.
 // Props values present on toClone will be copied.
 // Missing props are defaluted, except for those in noDefProps.
 // {lg} -> {} -> {}
 export const cloneWithDefExcept = R.curry((lg, noDefProps, toClone) =>
-    ({ ...LG.def(LG.remove(noDefProps, lg )), ...toClone})) ;
+  cloneWithFn(LG.remove(noDefProps, lg), 'viewOrDef', LGU.identityOrPlacehoder(toClone)));
 
 // Return an new object containing all props on the lg, set to defaults
 // {lg} -> {} -> {}

@@ -506,6 +506,16 @@ function testClone() {
       const someDefs3 = cloneCatWithDefExcept(['id', 'mood'], myCat);
       expect(someDefs3).to.deep.equal(myCat);
     });
+    it('Should remove non LG props from cloned obj',()=>{
+      const catWithExtraProps = { ...myCat, rougeProp1: 'r1', rougeProp2: 'r2'};
+      const cloneCat = LG.clone(catLg);
+      expect(cloneCat(catWithExtraProps)).to.deep.equal(myCat);
+      const cloneCatWithDefs = LG.cloneWithDef(catLg);
+      expect(cloneCatWithDefs(catWithExtraProps)).to.deep.equal({...defCat, ...myCat});
+      const cloneCatWithDefExcept = LG.cloneWithDefExcept(catLg);
+      expect(cloneCatWithDefExcept([], catWithExtraProps)).to.deep.equal({...defCat, ...myCat});
+      expect(cloneCatWithDefExcept(['id', 'mood'], catWithExtraProps)).to.deep.equal(myCat);
+    });
   });
 }
 
