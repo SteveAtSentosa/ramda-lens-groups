@@ -516,6 +516,11 @@ function testClone() {
       expect(cloneCatWithDefExcept([], catWithExtraProps)).to.deep.equal({...defCat, ...myCat});
       expect(cloneCatWithDefExcept(['id', 'mood'], catWithExtraProps)).to.deep.equal(myCat);
     });
+
+    it('Should add null defaults',()=>{
+      const catLgWithNullDefaults = LG.add(['id', 'mood'], [null, null], catLg);
+      expect(LG.def(catLgWithNullDefaults)).to.deep.equal({ ...defCat, id: null, mood: null  });
+    });
   });
 }
 
