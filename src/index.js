@@ -7,5 +7,5 @@
 // BUG list:
 // * expect(LG.viewOrDef(lg, 'null', falsey)) test should pass (see notes in the test)
 
-import LG from './lensGroups';
-export default LG;
+import LG from './lensGroups'
+export default LG
