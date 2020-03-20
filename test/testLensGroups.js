@@ -7,19 +7,19 @@ import { addLensGroupValidators } from '../src/internal' //TODO: make top level 
 export default function runLensGroupTests() {
 
   describe('Test Lens Groups', () => {
-    // testInvalidArgs()
-    // testWithoutDefaults()
-    // testWithDefaults()
-    // testListOperations()
-    // testLensTargetView()
-    // testLensTargetSet()
-    // testPaths()
-    // testCurry()
-    // testClone()
-    // testDefaultAdd()
-    // testLensPropSpecialization()
-    // testLensPathSpecialization()
-    // testMutability()
+    testInvalidArgs()
+    testWithoutDefaults()
+    testWithDefaults()
+    testListOperations()
+    testLensTargetView()
+    testLensTargetSet()
+    testPaths()
+    testCurry()
+    testClone()
+    testDefaultAdd()
+    testLensPropSpecialization()
+    testLensPathSpecialization()
+    testMutability()
     tinker()
   })
 }
@@ -48,6 +48,9 @@ function getBaseTestSet() {
   const brosCatWithDef = { ...testSet.defCat, ...testSet.brosCat }
   const catLg = LG.create(testSet.lgProps, testSet.lgDefs)
   const broCatLg = LG.create(testSet.lgProps, testSet.lgDefs, testSet.familyPath)
+  const catLgWithValidators = LG.addValidators(
+    catLg, testSet.lgProps, testSet.lgValidators, testSet.lgRequired, testSet.lgExtraPropsAllowed
+  )
   // const catLgWithValidators = LG.createWithValidators(
   //   testSet.lgProps, testSet.lgDefs,
   //   testSet.lgValidators, testSet.lgRequired, testSet.lgExtraPropsAllowed,
@@ -61,6 +64,7 @@ function getBaseTestSet() {
     brosCatWithDef,
     catLg,
     broCatLg,
+    catLgWithValidators,
   }
 }
 
@@ -150,7 +154,6 @@ function testWithoutDefaults() {
       expect(myCat).to.deep.equal(myCat)
       expect(moodyCat).to.not.equal(myCat)
       expect(moodyCat).to.deep.equal({ ...myCat, mood: 'happy' })
-
     })
     it('should return original obj on inavlid inputs', () => {
       const rougeCat = LG.set(catLg, 'rouge-prop', 'does-not-matter', myCat)
@@ -740,13 +743,10 @@ function testMutability() {
 function tinker() {
   const {
     lgProps, lgDefs, catLg, broCatLg, familyPath,
-    myCat, brosCat, myFamily, defCat, myCatWithDef, brosCatWithDef
+    myCat, brosCat, myFamily, defCat, myCatWithDef, brosCatWithDef, catLgWithValidators
   } = getBaseTestSet()
 
-  console.log('catLg.color: ', catLg.color)
-  console.log('isFunction(catLg.color): ', isFunction(catLg.color))
-  const t = R.view(catLg.color, myCat)
-  console.log('t: ', t)
+  console.log('catLgWithValidators: ', catLgWithValidators)
 
 }
 

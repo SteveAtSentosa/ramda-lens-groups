@@ -26,45 +26,43 @@ export const addLensGroupLenses = (propList, defaults, path, toMe) => {
 
   const p = LGU.stringArrayOrEmpty(path)
   return propList.reduce((acc, prp, i) => {
-    const propPath = [...p, prp]
-    const next = R.mergeRight(acc, { [prp]:R.lensPath(propPath) })
-    next[prp].set = R.set(next[prp])
-    next[prp].view = R.view(next[prp])
+    const propLens = R.lensPath([...p, prp])
+    const next = R.mergeRight(acc, { [prp]: { lens: propLens } })
+    next[prp].set = R.set(propLens)
+    next[prp].view = R.view(propLens)
+    next[prp].viewOr = (fallback, obj) => R.isNil(R.view(propLens, obj||{})) ?
+      fallback : R.view(propLens, obj)   // fallback on non-nil props
 
-    next[prp].viewOr = (fallback, obj) => R.isNil(R.view(next[prp], obj||{})) ?
-      fallback : R.view(next[prp], obj)   // fallback on non-nil props
-
-    // console.log('i, defaults.length-1: ', i, defaults.length-1);
     // next[prp].viewOrDef =  LGU.arrayEntryIsNil(i, defaults) ?
     next[prp].viewOrDef = defaults && i <= defaults.length-1 ?
-      obj => R.isNil(R.view(next[prp], obj||{})) ? defaults[i] : R.view(next[prp], obj) : // default on non-nil props
-      obj => R.view(next[prp], obj) // straight view if no default val present
+      obj => R.isNil(R.view(propLens, obj||{})) ? defaults[i] : R.view(propLens, obj) : // default on non-nil props
+      obj => R.view(propLens, obj) // straight view if no default val present
 
     return next
-  },
-    R.isNil(toMe) ? {} : { ...toMe })
+  }, R.isNil(toMe) ? {} : { ...toMe })
 }
 
 
 // Given an existing lens group and a set of props on that lens group add validator functions
 // and required flags.  in prop names in propList that are not on lg will be ignored
 // [''] -> [''] -> [''] -> lg
-export const addLensGroupValidators = R.curry((propList, validatorFnList, requiredList, extraPropsAllowed, lg) => {
+export const addLensGroupValidators = R.curry((lg, propList, validatorFnList, requiredList, extraPropsAllowed) => {
+  console.log('~~> addLensGroupValidators()')
 
-  // const lgWithValidators = propList.reduce((acc, prp, i) => {
-  //   if (LGU.doesNotHave(prp, lg))
-  //     return LGU.warnAndReturn(`LG::addLensGroupValidators(): ${prp} not on lens group`, acc)
+  const lgWithValidators = propList.reduce((acc, prp, i) => {
+    if (LGU.doesNotHave(prp, lg))
+      return LGU.warnAndReturn(`LG::addLensGroupValidators(): ${prp} not on lens group`, acc)
 
-  //   const next = lg
-  //   next[prp] = R.assoc('validatorFn', validatorFnList[i], next[prp])
-  //   next[prp] = R.assoc('required', requiredList[i], next[prp])
-  //   return next
-  // }, { ...lg })
+    const next = { ...acc }
+    next[prp] = R.assoc('validatorFn', validatorFnList[i], next[prp])
+    next[prp] = R.assoc('required', requiredList[i], next[prp])
+    return next
+  }, lg)
 
-  // return {
-  //   ...lgWithValidators,
-  //   _$_extraPropsAllowed: !!extraPropsAllowed
-  // }
+  return {
+    ...lgWithValidators,
+    _$_extraPropsAllowed: !!extraPropsAllowed
+  }
 })
 
 // Add internal helpers to lg (can be empty {}), given the lg's path
@@ -99,7 +97,7 @@ export const cloneWithFn = R.curry((lg, fxnName, toClone) => {
   }, {})
 })
 
-export const validateLenGroupInputs = (f, propList, defaults, path) => {
+export const validateLensGroupInputs = (f, propList, defaults, path) => {
   if (R.isNil(propList) || LGU.isNotStringArray(propList)) {
     return warnAndReturn(`${f}: propList must be supplied as an array of strings`, false)
   }
@@ -113,18 +111,18 @@ export const validateLenGroupInputs = (f, propList, defaults, path) => {
 }
 
 export const validateValidatorInputs = (f, propList, validatorFnList, requiredList, extraPropsAllowed) => {
-  // if (R.isNil(propList) || LGU.isNotStringArray(propList)) {
-  //   return warnAndReturn(`${f}: propList must be an array of strings`, false)
-  // }
-  // if (LGU.isNotFnrrayOfLength(R.length(propList), validatorFnList)) {
-  //   return warnAndReturn(`${f}: validatorFnList must be an array of functions, same length as propList`, false)
-  // }
-  // if (LGU.isNotBoolrrayOfLength(R.length(propList), requiredList)) {
-  //   return warnAndReturn(`${f}: requiredList must be an array of functions, same length as propList`, false)
-  // }
-  // if (RA.isNotBoolean(extraPropsAllowed)) {
-  //   return warnAndReturn(`${f}: extraPropsAllowed must be a boolean`, false)
-  // }
+  if (R.isNil(propList) || LGU.isNotStringArray(propList)) {
+    return warnAndReturn(`${f}: propList must be an array of strings`, false)
+  }
+  if (LGU.isNotFnrrayOfLength(R.length(propList), validatorFnList)) {
+    return warnAndReturn(`${f}: validatorFnList must be an array of functions, same length as propList`, false)
+  }
+  if (LGU.isNotBoolArrayOfLength(R.length(propList), requiredList)) {
+    return warnAndReturn(`${f}: requiredList must be an array of functions, same length as propList`, false)
+  }
+  if (RA.isNotBoolean(extraPropsAllowed)) {
+    return warnAndReturn(`${f}: extraPropsAllowed must be a boolean`, false)
+  }
   return true
 }
 
