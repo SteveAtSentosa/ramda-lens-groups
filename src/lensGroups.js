@@ -14,13 +14,16 @@ import * as RA from 'ramda-adjunct'
 import LGU from './utils'
 import {
   isLg,
+  isLgWithValidators,
   cloneWithFn,
   updatePath,
   addLensGroupLenses,
   addLensGroupInternals,
   addLensGroupValidators,
   validateLensGroupInputs,
-  validateValidatorInputs
+  validateValidatorInputs,
+  validateOneProp,
+  validateAllProps
 } from './internal'
 
 
@@ -28,13 +31,16 @@ import {
 // Lens Group Creation
 //*****************************************************************************
 
+// TODO: make validation an additional prop at the end, as an object, defaulting to {}
+// then existing lens group code will not break
+
 // Given a list of property names in propList, create a group of lenses
 // focused on those property names.  defaults for each property name and
 // a path to the target object may be optionally provided.
 // Returns undefined on invalid inputs.
 // ( [''], ['']|u, ['']|u  ) -> {}
-export const create = (propList, defaults, path) =>
-  validateLensGroupInputs('LG.create()', propList, defaults, path) ?
+export const create = (propList, defaults, path, validation) =>
+  validateLensGroupInputs('LG.create()', propList, defaults, path, validation) ?
     R.compose(
       addLensGroupInternals(path),
       addLensGroupLenses
@@ -45,12 +51,27 @@ export const create = (propList, defaults, path) =>
 // Lens Group Validators
 //*****************************************************************************
 
+// TODO: document
 export const addValidators = (lg, propList, validatorFnList, requiredList, extraPropsAllowed) =>
   isLg(lg) &&
-  validateValidatorInputs(
-    'LG.addValidators()', propList, validatorFnList, requiredList, extraPropsAllowed
-  )
+  validateValidatorInputs('LG.addValidators()', propList, validatorFnList, requiredList, extraPropsAllowed)
     ? addLensGroupValidators(lg, propList, validatorFnList, requiredList, extraPropsAllowed) : lg
+
+// TODO: return true or false on invalid input ????
+export const validateProp = R.curry((lg, prp, obj) =>
+  isLgWithValidators(lg) &&
+  RA.isString(prp) &&
+  RA.isObj(obj) &&
+  RA.isObj(lg[prp])
+    ? validateOneProp(lg, prp, obj): false
+)
+
+export const validate = R.curry((lg, obj) =>
+  isLgWithValidators(lg) &&
+  RA.isObj(obj)
+    ? validateAllProps(lg, obj): false
+)
+
 
 
 
@@ -90,7 +111,7 @@ export const view = R.curry((lg, prp, obj) =>
   isLg(lg) &&
   RA.isObj(obj) &&
   RA.isString(prp) &&
-  RA.isObject(lg[prp])
+  RA.isObj(lg[prp])
     ? lg[prp].view(obj) : undefined)
 
 // Return an object which contains 'views' of all of the propNames
@@ -108,7 +129,7 @@ export const viewOr = R.curry((lg, fallback, prp, obj) =>
   isLg(lg) &&
   RA.isObj(obj) &&
   RA.isString(prp) &&
-  RA.isObject(lg[prp])
+  RA.isObj(lg[prp])
     ? lg[prp].viewOr(fallback, obj) : undefined)
 
 // Return an object which contains 'views' of all of the propNames
@@ -127,7 +148,7 @@ export const viewOrDef = R.curry((lg, prp, obj) =>
   isLg(lg) &&
   RA.isObj(obj) &&
   RA.isString(prp) &&
-  RA.isObject(lg[prp])
+  RA.isObj(lg[prp])
    ? lg[prp].viewOrDef(obj) : undefined)
 
 // Return an object which contains 'views' of all of the propNames
@@ -145,7 +166,7 @@ export const set = R.curry((lg, prp, val, obj) =>
   isLg(lg) &&
   RA.isObj(obj) &&
   RA.isString(prp) &&
-  RA.isObject(lg[prp])
+  RA.isObj(lg[prp])
     ? lg[prp].set(val, obj) : obj)
 
 // Return version of obj with lg props in propList set to vals in vallist,

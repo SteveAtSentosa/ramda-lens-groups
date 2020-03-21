@@ -50,12 +50,16 @@ export const pasteProps = R.curry((props, source, target) =>
   props.reduce((acc, p) => pasteProp(p, source, acc), target))
 
 export const doesNotHave = R.complement(R.has)
+export const doesNotInclude = R.complement(R.includes)
+export const arrayIsSubsetOf = (superArray, subArray) =>
+  RA.isArray(superArray) && RA.isArray(subArray) && subArray.every(val => superArray.includes(val))
+
+export const arrayIsNotSubsetOf = R.complement(arrayIsSubsetOf)
 
 export const warnAndReturn = (msg, toReturn) => {
   console.warn(`LG WARNING: ${msg}`)
   return toReturn
 }
-
 
 export const LGU = module.exports
 export default LGU

@@ -87,6 +87,23 @@ function testGeneralUtils() {
       expect(LGU.pasteProps(['a', 'b'], ab, cd)).to.deep.equal({ ...ab, ...cd })
       expect(LGU.pasteProps(['a', 'c'], ab, cd)).to.deep.equal({ ...cd, a:'a' })
     })
+
+    it('should determin array subsets correctly', () => {
+      expect(LGU.arrayIsSubsetOf([], [])).to.be.true
+      expect(LGU.arrayIsSubsetOf(['a'], [])).to.be.true
+      expect(LGU.arrayIsSubsetOf(['a'], ['a'])).to.be.true
+      expect(LGU.arrayIsSubsetOf(['a', 'b', 'c'], ['a'])).to.be.true
+      expect(LGU.arrayIsSubsetOf(['c', 'b', 'a'], ['a', 'b', 'c'])).to.be.true
+      expect(LGU.arrayIsSubsetOf(['c', 'b', 'a'], ['z', 'b', 'c'])).to.be.false
+      expect(LGU.arrayIsSubsetOf(['a', 'b'], ['a', 'b', 'c'])).to.be.false
+      expect(LGU.arrayIsNotSubsetOf([], [])).to.be.false
+      expect(LGU.arrayIsNotSubsetOf(['a'], [])).to.be.false
+      expect(LGU.arrayIsNotSubsetOf(['a'], ['a'])).to.be.false
+      expect(LGU.arrayIsNotSubsetOf(['a', 'b', 'c'], ['a'])).to.be.false
+      expect(LGU.arrayIsNotSubsetOf(['c', 'b', 'a'], ['a', 'b', 'c'])).to.be.false
+      expect(LGU.arrayIsNotSubsetOf(['c', 'b', 'a'], ['z', 'b', 'c'])).to.be.true
+      expect(LGU.arrayIsNotSubsetOf(['a', 'b'], ['a', 'b', 'c'])).to.be.true
+    })
   })
 }
 

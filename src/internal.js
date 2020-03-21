@@ -12,9 +12,16 @@ export const isLg = lg => {
   if (R.propOr(false, '_$_lgTag', lg))
     return true
   else {
-    console.warn('Non lens group supplied for lg operation', lg)
+    console.warn('LG: Non lens group supplied for lg operation', lg)
     return false
   }
+}
+
+export const isLgWithValidators = lg => {
+  if (isLg(lg) && R.propEq('_$_hasValidators', true, lg))
+    return true
+  else
+    return warnAndReturn('LG: lens group is invalid or without validators', false)
 }
 
 // Given a list of property names in propList, add lenses to toMe object (or new
@@ -47,11 +54,12 @@ export const addLensGroupLenses = (propList, defaults, path, toMe) => {
 // and required flags.  in prop names in propList that are not on lg will be ignored
 // [''] -> [''] -> [''] -> lg
 export const addLensGroupValidators = R.curry((lg, propList, validatorFnList, requiredList, extraPropsAllowed) => {
-  console.log('~~> addLensGroupValidators()')
-
   const lgWithValidators = propList.reduce((acc, prp, i) => {
-    if (LGU.doesNotHave(prp, lg))
-      return LGU.warnAndReturn(`LG::addLensGroupValidators(): ${prp} not on lens group`, acc)
+    if (LGU.doesNotHave(prp, lg)) {
+      return LGU.warnAndReturn(
+        `LG::addLensGroupValidators(): ${prp} not on lens group`, acc
+      )
+    }
 
     const next = { ...acc }
     next[prp] = R.assoc('validatorFn', validatorFnList[i], next[prp])
@@ -60,8 +68,9 @@ export const addLensGroupValidators = R.curry((lg, propList, validatorFnList, re
   }, lg)
 
   return {
+    _$_extraPropsAllowed: !!extraPropsAllowed,
+    _$_hasValidators: true,
     ...lgWithValidators,
-    _$_extraPropsAllowed: !!extraPropsAllowed
   }
 })
 
@@ -127,14 +136,49 @@ export const validateValidatorInputs = (f, propList, validatorFnList, requiredLi
 }
 
 
+// assumes lg has already been validatte
 // returns true if
 // * prop not required and is not present
 // * prop is present and satisfies valitation fn
 // returns false if
 // * prop required but not present
 // * prop present and fails valitation fn
-export const validateProp = (lg, prp, obj) => {
+// * lens group validators are not valid
+export const validateOneProp = (lg, prp, obj) => {
+  const required = R.path([prp, 'required'], lg)
+  const validatorFn = R.path([prp, 'validatorFn'], lg)
+
+  if (RA.isNotBoolean(required) || RA.isNotFunction(validatorFn)) {
+    return warnAndReturn('LG::validateProp(): invalid validators on lens group', false)
+  }
+
+  if (LGU.doesNotHave(prp, obj)) return !required
+  return validatorFn(obj[prp])
+}
+
+const propRequired = R.curry((lg, prp) => lg[prp].required)
+const getLgProps = R.pipe(R.keys, R.filter(isNotInternalProp))
+const isExtraProp = (lg, prp) => LGU.doesNotHave(prp, lg)
+const extraPropsPermitted = lg => R.propEq('_$_extraPropsAllowed', true, lg)
+const extraPropsNotPermitted = R.complement(extraPropsPermitted)
 
 
+// assumes lg has already been validated
+export const validateAllProps = (lg, obj) => {
+  const incomingProps = R.keys(obj)
+  const lgProps = getLgProps(lg)
+  const requiredProps = R.filter(propRequired(lg), lgProps)
 
+  if (LGU.arrayIsNotSubsetOf(incomingProps, requiredProps)) return false
+
+  for (let i = 0; i < incomingProps.length; i++) {
+    const incomingPropName = incomingProps[i]
+    if (isExtraProp(lg, incomingPropName)) {
+      if (extraPropsNotPermitted(lg)) return false
+    } else {
+      // TODO: be safer here?  Write help fns to get validator from lg
+      if (!lg[incomingPropName].validatorFn(obj[incomingPropName])) return false
+    }
+  }
+  return true
 }

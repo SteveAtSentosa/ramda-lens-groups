@@ -1,26 +1,33 @@
 import { assert, expect } from 'chai'
-import R, { forEach } from 'ramda'
-import RA, { isNumber, isString, isFunction, isBoolean } from 'ramda-adjunct' // TODO:, WTF why does RA not work ??????????
+import * as R from 'ramda'
+import { isNumber, isString, isFunction, isBoolean } from 'ramda-adjunct'
+import * as RA from 'ramda-adjunct'
 import LG from '../src/index'
 import { addLensGroupValidators } from '../src/internal' //TODO: make top level API for this ???
 
 export default function runLensGroupTests() {
 
   describe('Test Lens Groups', () => {
-    testInvalidArgs()
-    testWithoutDefaults()
-    testWithDefaults()
-    testListOperations()
-    testLensTargetView()
-    testLensTargetSet()
-    testPaths()
-    testCurry()
-    testClone()
-    testDefaultAdd()
-    testLensPropSpecialization()
-    testLensPathSpecialization()
-    testMutability()
-    tinker()
+
+    const { catLg, catLgWithValidators } = getBaseTestSet()
+
+    // run all non validation tests against both base and validation lgs
+    R.forEach(catLg => {
+      testInvalidArgs(catLg)
+      testWithoutDefaults(catLg)
+      testWithDefaults(catLg)
+      testListOperations(catLg)
+      testLensTargetView(catLg)
+      testLensTargetSet(catLg)
+      testPaths(catLg)
+      testCurry(catLg)
+      testClone(catLg)
+      testDefaultAdd(catLg)
+      testLensPropSpecialization(catLg)
+      testLensPathSpecialization(catLg)
+      testMutability(catLg)
+    }, [catLg, catLgWithValidators])
+    testValidation()
   })
 }
 
@@ -35,7 +42,6 @@ function getBaseTestSet() {
     lgDefs: [-1, 'defName', 'defColor', 'defMood'],
     lgValidators: [isNumber, isString, isString, isString],
     lgRequired: [false, true, true, false],
-    lgExtraPropsAllowed: false,
     familyPath: ['myBrother', 'hisPets', 'brosCat'],
     myCat: { name: 'sunshine', color: 'orange' },
     brosCat: { id: 9, mood: 'grumpy' },
@@ -49,14 +55,11 @@ function getBaseTestSet() {
   const catLg = LG.create(testSet.lgProps, testSet.lgDefs)
   const broCatLg = LG.create(testSet.lgProps, testSet.lgDefs, testSet.familyPath)
   const catLgWithValidators = LG.addValidators(
-    catLg, testSet.lgProps, testSet.lgValidators, testSet.lgRequired, testSet.lgExtraPropsAllowed
+    catLg, testSet.lgProps, testSet.lgValidators, testSet.lgRequired, false
   )
-  // const catLgWithValidators = LG.createWithValidators(
-  //   testSet.lgProps, testSet.lgDefs,
-  //   testSet.lgValidators, testSet.lgRequired, testSet.lgExtraPropsAllowed,
-  //   testSet.familyPath
-  // )
-
+  const catLgWithValidatorsPermissive = LG.addValidators(
+    catLg, testSet.lgProps, testSet.lgValidators, testSet.lgRequired, true
+  )
   return {
     ...testSet,
     myFamily,
@@ -65,6 +68,7 @@ function getBaseTestSet() {
     catLg,
     broCatLg,
     catLgWithValidators,
+    catLgWithValidatorsPermissive,
   }
 }
 
@@ -105,11 +109,11 @@ function testInvalidArgs() {
 // Test lens groups w/o defaults
 //*****************************************************************************
 
-function testWithoutDefaults() {
+function testWithoutDefaults(catLg) {
 
   describe('No defaults', () => {
 
-    const { lgProps, catLg, myCat } = getBaseTestSet()
+    const { lgProps, myCat } = getBaseTestSet()
 
     it('should have correct lenses', () => {
       expect(catLg).to.include.keys(lgProps)
@@ -167,11 +171,11 @@ function testWithoutDefaults() {
 // Test lens groups with defaults
 //*****************************************************************************
 
-function testWithDefaults() {
+function testWithDefaults(catLg) {
 
   describe('With defaults', () => {
 
-    const { lgProps, catLg, myCat } = getBaseTestSet()
+    const { lgProps, myCat } = getBaseTestSet()
 
     it('should not default existing props', () => {
       expect(LG.viewOrDef(catLg, 'name', myCat)).to.equal('sunshine')
@@ -219,11 +223,10 @@ function testWithDefaults() {
 // Test list based lens group operations
 //*****************************************************************************
 
-function testListOperations() {
+function testListOperations(catLg) {
 
   const {
-    lgProps, lgDefs, catLg, broCatLg,
-    myCat, brosCat, defCat, myCatWithDef
+    lgProps, myCat, brosCat, defCat, myCatWithDef
   } = getBaseTestSet()
 
   describe('List based lens operations', () => {
@@ -269,11 +272,10 @@ function testListOperations() {
 // Test lens group target view
 //*****************************************************************************
 
-function testLensTargetView() {
+function testLensTargetView(catLg) {
 
   const {
-    lgProps, lgDefs, catLg, broCatLg,
-    myCat, brosCat, myFamily, familyPath
+    broCatLg, myCat, brosCat, myFamily, familyPath
   } = getBaseTestSet()
 
   describe('Lens Target View', () => {
@@ -309,11 +311,10 @@ function testLensTargetView() {
 // Test lens group target set
 //*****************************************************************************
 
-function testLensTargetSet() {
+function testLensTargetSet(catLg) {
 
   const {
-    lgProps, lgDefs, catLg, broCatLg,
-    myCat, brosCat, myFamily, familyPath
+    broCatLg, brosCat, myFamily,
   } = getBaseTestSet()
 
   const newCat = { name: 'newCat', mood: 'fresh', color: 'white' }
@@ -359,13 +360,12 @@ function testLensTargetSet() {
 // Test paths
 //*****************************************************************************
 
-function testPaths() {
+function testPaths(catLg) {
 
   describe('Lens groups with path', () => {
 
     const {
-      lgProps, lgDefs, catLg, broCatLg,
-      myCat, brosCat, myFamily
+      broCatLg, brosCat, myFamily
     } = getBaseTestSet()
 
     const brokenPath1 = { mySister: { hisPets : { brosCat } } }
@@ -413,12 +413,11 @@ function testPaths() {
 // Test lens group currying
 //*****************************************************************************
 
-function testCurry() {
+function testCurry(catLg) {
   describe('Lens group currying', () => {
 
     const {
-      lgProps, lgDefs, catLg, broCatLg,
-      myCat, brosCat, myFamily, defCat
+      broCatLg, myCat, myFamily,
     } = getBaseTestSet()
 
     const viewCat = LG.view(catLg)
@@ -458,12 +457,11 @@ function testCurry() {
 // Test Cloning
 //*****************************************************************************
 
-function testClone() {
+function testClone(catLg) {
   describe('Lens Cloning', () => {
 
     const {
-      lgProps, lgDefs, catLg, broCatLg,
-      myCat, brosCat, myFamily, defCat
+      broCatLg, myCat, brosCat, myFamily, defCat
     } = getBaseTestSet()
 
     it('Should clone without path or defaults', () => {
@@ -547,11 +545,10 @@ function testClone() {
 // Test lens group default additionss
 //*****************************************************************************
 
-function testDefaultAdd() {
+function testDefaultAdd(catLg) {
 
   const {
-    lgProps, catLg, broCatLg,
-    myCat, defCat, brosCat, myFamily, familyPath
+    lgProps, myCat, defCat, brosCat
   } = getBaseTestSet()
 
   describe('Default additions', () => {
@@ -576,12 +573,11 @@ function testDefaultAdd() {
 // Test lens group prop specialization
 //*****************************************************************************
 
-function testLensPropSpecialization() {
+function testLensPropSpecialization(catLg) {
   describe('Lens group prop specialization', () => {
 
     const {
-      lgProps, lgDefs, catLg, broCatLg, myCat, brosCat,
-      myFamily, defCat, myCatWithDef, brosCatWithDef
+      broCatLg, myCat, myFamily, defCat, myCatWithDef, brosCatWithDef
     } = getBaseTestSet()
 
     const plusProps = ['size', 'age']
@@ -653,11 +649,10 @@ function testLensPropSpecialization() {
 // Test lens group path specialization
 //*****************************************************************************
 
-function testLensPathSpecialization() {
+function testLensPathSpecialization(catLg) {
 
   const {
-    lgProps, lgDefs, catLg, broCatLg, familyPath,
-    myCat, brosCat, myFamily, defCat, myCatWithDef, brosCatWithDef
+    broCatLg, familyPath, myCat, brosCat, myFamily, myCatWithDef, brosCatWithDef
   } = getBaseTestSet()
 
   describe('Lens group path specialization', () => {
@@ -701,18 +696,97 @@ function testLensPathSpecialization() {
   })
 }
 
+
+//*****************************************************************************
+// Validation
+//*****************************************************************************
+
+// Make sure and test
+// * invalid inputs
+// * paths
+// * non existant props
+
+function testValidation(catLg) {
+
+  describe('Lens group validation', () => {
+
+    const { myCat, myCatWithDef, lgProps, catLgWithValidators, catLgWithValidatorsPermissive } = getBaseTestSet()
+
+
+    it('should add lg validators properly', () => {
+      R.forEach(prp => expect(isFunction(R.prop('validatorFn', catLgWithValidators[prp]))).to.be.true, lgProps)
+      R.forEach(prp => expect(isBoolean(R.prop('required', catLgWithValidators[prp]))).to.be.true, lgProps)
+      expect(isBoolean(R.prop('_$_extraPropsAllowed', catLgWithValidators))).to.be.true
+    })
+
+    it('should validate single properties properly', () => {
+
+      // required props present
+      expect(LG.validateProp(catLgWithValidators, 'name', myCat)).to.be.true
+      expect(LG.validateProp(catLgWithValidators, 'color', myCat)).to.be.true
+
+      // non required props not present
+      expect(LG.validateProp(catLgWithValidators, 'id', myCat)).to.be.true
+      expect(LG.validateProp(catLgWithValidators, 'mood', myCat)).to.be.true
+
+      // missing required props
+      const emptyCat = {}
+      expect(LG.validateProp(catLgWithValidators, 'name', emptyCat)).to.be.false
+      expect(LG.validateProp(catLgWithValidators, 'color', emptyCat)).to.be.false
+
+      // invalid prop types
+      const badCat = { name: {}, color: 2, id: 'id', mood: false }
+      expect(LG.validateProp(catLgWithValidators, 'name', badCat)).to.be.false
+      expect(LG.validateProp(catLgWithValidators, 'color', badCat)).to.be.false
+      expect(LG.validateProp(catLgWithValidators, 'id', badCat)).to.be.false
+      expect(LG.validateProp(catLgWithValidators, 'mood', badCat)).to.be.false
+    })
+    it('should validate entire objects properly', () => {
+      const strictLg = catLgWithValidators
+      const permissiveLg = catLgWithValidatorsPermissive
+
+      const myCatWithExtraProps = { ...myCat, iHate: 'dogs' }
+      expect(LG.validate(strictLg, myCat)).to.be.true
+      expect(LG.validate(strictLg, myCatWithExtraProps)).to.be.false
+      expect(LG.validate(permissiveLg, myCatWithExtraProps)).to.be.true
+
+      const catWithMissingRequiredProp = { name: 'moodless' }
+      expect(LG.validate(strictLg, catWithMissingRequiredProp)).to.be.false
+      expect(LG.validate(permissiveLg, catWithMissingRequiredProp)).to.be.false
+
+      const catWithAllTypes = myCatWithDef
+      expect(LG.validate(strictLg, catWithAllTypes)).to.be.true
+      expect(LG.validate(permissiveLg, catWithAllTypes)).to.be.true
+
+      const catWithAllTypesAndExtra = { ...catWithAllTypes, iHate: 'dogs' }
+      expect(LG.validate(strictLg, catWithAllTypesAndExtra)).to.be.false
+      expect(LG.validate(permissiveLg, catWithAllTypesAndExtra)).to.be.true
+
+      const catWithBadIdType = { id: '1', name: 'badType', color: 'black', mood: 'cranky' }
+      const catWithBadNameType = { id: 1, name: 666, color: 'black' }
+      const catWithBadMoodType = { id: 1, name: 'badType', color: 'black', mood: ['foul'] }
+      const catWithBadMoodTypeAndExtraProps = { ...catWithBadMoodType, shouldChill: true }
+      expect(LG.validate(strictLg, catWithBadIdType)).to.be.false
+      expect(LG.validate(strictLg, catWithBadNameType)).to.be.false
+      expect(LG.validate(strictLg, catWithBadMoodType)).to.be.false
+      expect(LG.validate(strictLg, catWithBadMoodTypeAndExtraProps)).to.be.false
+      expect(LG.validate(permissiveLg, catWithBadIdType)).to.be.false
+      expect(LG.validate(permissiveLg, catWithBadNameType)).to.be.false
+      expect(LG.validate(permissiveLg, catWithBadMoodType)).to.be.false
+      expect(LG.validate(permissiveLg, catWithBadMoodTypeAndExtraProps)).to.be.false
+    })
+  })
+}
+
 //*****************************************************************************
 // TBD
 //*****************************************************************************
 
-function testMutability() {
+function testMutability(catLg) {
 
   describe('Lens group mutability', () => {
 
-    const {
-      lgProps, lgDefs, catLg, broCatLg, familyPath,
-      myCat, brosCat, myFamily, defCat, myCatWithDef, brosCatWithDef
-    } = getBaseTestSet()
+    const { myCat } = getBaseTestSet()
 
     it('should clone objects immutably', () => {
       const clonedCat = LG.clone(catLg, myCat)
@@ -740,16 +814,5 @@ function testMutability() {
   })
 }
 
-function tinker() {
-  const {
-    lgProps, lgDefs, catLg, broCatLg, familyPath,
-    myCat, brosCat, myFamily, defCat, myCatWithDef, brosCatWithDef, catLgWithValidators
-  } = getBaseTestSet()
-
-  console.log('catLgWithValidators: ', catLgWithValidators)
-
-}
-
 function testComplexTargets() {
-
 }
