@@ -1,6 +1,11 @@
 // TODO:
-// * add validation as input to all specilizations as needed
+// x get current tests to work
+// * understand why I am current, making the prop key a function
+// * make a simple smoke test that takes catLg
+// * Get smoke test to work with lg that has had validators added
+// * make input to addVaidators an object
 // * don't set a type if valdator exixts and input is wrong type
+// * update lint stuff
 // * warnings for all invalid input
 // * allow set/get of props not on the LG?
 
@@ -14,8 +19,9 @@ import {
   updatePath,
   addLensGroupLenses,
   addLensGroupInternals,
-  addLensGroupValidatorsNew,
-  validateLensGroupInputsNew,
+  addLensGroupValidators,
+  validateLensGroupInputs,
+  validateValidatorInputs,
   validateOneProp,
   validateAllProps
 } from './internal'
@@ -24,6 +30,9 @@ import {
 //*****************************************************************************
 // Lens Group Creation
 //*****************************************************************************
+
+// TODO: make validation an additional prop at the end, as an object, defaulting to {}
+// then existing lens group code will not break
 
 // Given a list of property names in propList, create a group of lenses
 // focused on those property names.  defaults for each property name,
@@ -41,12 +50,12 @@ import {
 //     single boolean specifying ether props in addition to those on lg or OK
 //  }
 // Returns undefined on invalid inputs.
-// ( [''], ['']|u, ['']|u  {}|u) -> {}
+// ( [''], ['']|u, ['']|u  ) -> {}
 export const create = (propList, defaults, path, validation) =>
-  validateLensGroupInputsNew('LG.create()', propList, defaults, path, validation) ?
+  validateLensGroupInputs('LG.create()', propList, defaults, path, validation) ?
     R.compose(
       addLensGroupInternals(path),
-      addLensGroupValidatorsNew(propList, validation),
+      // addLensGroupValidators(...validationArgsFromObj(validation)),
       addLensGroupLenses
     )(propList, defaults, path) : undefined
 
@@ -56,13 +65,14 @@ export const create = (propList, defaults, path, validation) =>
 //*****************************************************************************
 
 // TODO: document
-// export const addValidators = (lg, propList, validatorFnList, requiredList, extraPropsAllowed) =>
-//   isLg(lg) &&
-//   validateValidatorInputs('LG.addValidators()', propList, validatorFnList, requiredList, extraPropsAllowed)
-//     ? addLensGroupValidators(lg, propList, validatorFnList, requiredList, extraPropsAllowed) : lg
+export const addValidators = (lg, propList, validatorFnList, requiredList, extraPropsAllowed) =>
+// export const addValidators = (lg, propList, validation) =>
+  isLg(lg)
+  // && validateValidatorInputs('LG.addValidators()', propList, validatorFnList, requiredList, extraPropsAllowed)
+    ? addLensGroupValidators(propList, validatorFnList, requiredList, extraPropsAllowed, lg) : lg
+    // ? addLensGroupValidators(propList, validation, lg) : lg
 
-// TODO: document
-// TODO: return true or false on invalid input ???? (currently returning false)
+// TODO: return true or false on invalid input ????
 export const validateProp = R.curry((lg, prp, obj) =>
   isLgWithValidators(lg) &&
   RA.isString(prp) &&
@@ -71,12 +81,15 @@ export const validateProp = R.curry((lg, prp, obj) =>
     ? validateOneProp(lg, prp, obj): false
 )
 
-// TODO: document
 export const validate = R.curry((lg, obj) =>
   isLgWithValidators(lg) &&
   RA.isObj(obj)
     ? validateAllProps(lg, obj): false
 )
+
+
+
+
 
 // export const addValidators = R.curry((propList, validatorFnList, requiredList, extraProps, lg) =>
 //   isLg(lg) &&
