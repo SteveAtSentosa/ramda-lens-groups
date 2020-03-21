@@ -1,9 +1,0 @@
-{
-  "passPerPreset": true,
-  "presets": [
-    "env",
-    "stage-0"
-  ]
-}
-
-

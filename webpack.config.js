@@ -1,41 +1,28 @@
-'use strict';
-
-var webpack = require('webpack')
-
-var env = process.env.NODE_ENV
-
-var config = {
-  module: {
-    loaders: [{
-      test: /\.js$/,
-      loaders: ['babel-loader'],
-      exclude: /node_modules/
-    }]
+const TerserPlugin = require('terser-webpack-plugin')
+module.exports = {
+  entry: {
+    app: './src/index.js',
   },
   output: {
-    library: 'Habu',
-    libraryTarget: 'umd'
+    library: 'lensGroups.min.js',
+    libraryTarget: 'umd',
+    globalObject: "typeof self !== 'undefined' ? self : this",
   },
-  plugins: [
-    new webpack.optimize.OccurrenceOrderPlugin(),
-    new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify(env)
-    })
-  ]
-};
-
-if (env === 'production') {
-  config.plugins.push(
-    new webpack.optimize.UglifyJsPlugin({
-      compressor: {
-        pure_getters: true,
-        unsafe: true,
-        unsafe_comps: true,
-        screw_ie8: true,
-        warnings: false
-      }
-    })
-  )
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        use: {
+          loader: 'babel-loader',
+          query: {
+            presets: ['@babel/preset-env'],
+          },
+        },
+      },
+    ],
+  },
+  optimization: {
+    minimizer: [new TerserPlugin()],
+  }
 }
-
-module.exports = config
