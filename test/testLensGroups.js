@@ -1,9 +1,7 @@
-import { assert, expect } from 'chai'
+import { expect } from 'chai'
 import * as R from 'ramda'
-import { isNumber, isString, isFunction, isBoolean } from 'ramda-adjunct'
-import * as RA from 'ramda-adjunct'
+import { isFunction, isBoolean, isNumber, isString, } from 'ramda-adjunct'
 import LG from '../src/index'
-import { addLensGroupValidators } from '../src/internal' //TODO: make top level API for this ???
 
 export default function runLensGroupTests() {
 
@@ -39,6 +37,7 @@ function getBaseTestSet() {
     familyPath: ['myBrother', 'hisPets', 'brosCat'],
     myCat: { name: 'sunshine', color: 'orange' },
     brosCat: { id: 9, mood: 'grumpy' },
+    LgRequiredBro: [true, false, false, true],
     defCatVals: [-1, 'defName', 'defColor', 'defMood'],
     defCat: { id: -1, name: 'defName', color: 'defColor', mood: 'defMood' }
   }
@@ -50,18 +49,27 @@ function getBaseTestSet() {
   const validation = { ...validationBase, extraPropsAllowed: false }
   const validationLax = { ...validationBase, extraPropsAllowed: true }
 
-  const myFamily = { myBrother: { hisPets : { brosCat: testSet.brosCat } } }
+  const validationBaseBro = {
+    validatorFnList: testSet.lgValidators,
+    requiredList: testSet.LgRequiredBro,
+  }
+  const validationBro = { ...validationBaseBro, extraPropsAllowed: false }
+  const validationBroLax = { ...validationBaseBro, extraPropsAllowed: true }
+
   const myCatWithDef = { ...testSet.defCat, ...testSet.myCat  }
   const brosCatWithDef = { ...testSet.defCat, ...testSet.brosCat }
+  const myFamily = { myBrother: { hisPets : { brosCat: testSet.brosCat } } }
+  const myFamilyWithDef = { myBrother: { hisPets : { brosCat: brosCatWithDef } } }
   const catLg = LG.create(testSet.lgProps, testSet.lgDefs, [], validation)
   const catLgLax = LG.create(testSet.lgProps, testSet.lgDefs, [], validationLax)
-  const broCatLg = LG.create(testSet.lgProps, testSet.lgDefs, testSet.familyPath, validation)
-  const broCatLgLax = LG.create(testSet.lgProps, testSet.lgDefs, testSet.familyPath, validationLax)
+  const broCatLg = LG.create(testSet.lgProps, testSet.lgDefs, testSet.familyPath, validationBro)
+  const broCatLgLax = LG.create(testSet.lgProps, testSet.lgDefs, testSet.familyPath, validationBroLax)
   return {
     ...testSet,
     myFamily,
     myCatWithDef,
     brosCatWithDef,
+    myFamilyWithDef,
     catLg,
     catLgLax,
     broCatLg,
@@ -692,7 +700,23 @@ function testLensPathSpecialization() {
       const fakeCatLg = removePath(broCatLg)
       expect(LG.cloneWithDef(fakeCatLg, myCat)).to.deep.equal(myCatWithDef)
     })
-    xit('should handle validtors properly for lens path specialization', () => {
+
+    it('should handle validtors properly for lens path specialization', () => {
+      const synthesizedBroCatLg = LG.replacePath(familyPath, catLg)
+      const synthesizedFamily =  { myBrother: { hisPets: { brosCat: myCat } } }
+      const emptyFamily =  { myBrother: { hisPets: { brosCat: {} } } }
+      const badFamily = { myBrother: { hisPets: { brosCat: { name: 'stinky', color: ['red'] } } } }
+
+      expect(LG.validateProp(synthesizedBroCatLg, 'name', synthesizedFamily)).to.be.true
+      expect(LG.validateProp(synthesizedBroCatLg, 'color', synthesizedFamily)).to.be.true
+      expect(LG.validateProp(synthesizedBroCatLg, 'id', synthesizedFamily)).to.be.true
+      expect(LG.validateProp(synthesizedBroCatLg, 'mood', synthesizedFamily)).to.be.true
+      expect(LG.validateProp(synthesizedBroCatLg, 'name', emptyFamily)).to.be.false
+      expect(LG.validateProp(synthesizedBroCatLg, 'color', emptyFamily)).to.be.false
+
+      expect(LG.validate(synthesizedBroCatLg, synthesizedFamily)).to.be.true
+      expect(LG.validate(synthesizedBroCatLg, emptyFamily)).to.be.false
+      expect(LG.validate(synthesizedBroCatLg, badFamily)).to.be.false
     })
   })
 }
@@ -711,8 +735,17 @@ function testValidation() {
 
   describe('Lens group validation', () => {
 
-    const { catLg, catLgLax, myCat, myCatWithDef, lgProps } = getBaseTestSet()
+    const {
+      catLg, catLgLax, broCatLg, broCatLgLax, myCat, myCatWithDef, brosCat, brosCatWithDef, myFamily, lgProps
+    } = getBaseTestSet()
 
+    const catWithBadIdType = { id: '1', name: 'badType', color: 'black', mood: 'cranky' }
+    const catWithBadNameType = { id: 1, name: 666, color: 'black' }
+    const catWithBadMoodType = { id: 1, name: 'badType', color: 'black', mood: ['foul'] }
+    const catWithBadColorType = { id: 1, name: 'badType', color: 22, mood: 'foul' }
+    const catWithBadMoodTypeAndExtraProps = { ...catWithBadMoodType, shouldChill: true }
+
+    // lg without path
 
     it('should add lg validators properly', () => {
       R.forEach(prp => expect(isFunction(R.prop('validatorFn', catLg[prp]))).to.be.true, lgProps)
@@ -761,10 +794,6 @@ function testValidation() {
       expect(LG.validate(catLg, catWithAllTypesAndExtra)).to.be.false
       expect(LG.validate(catLgLax, catWithAllTypesAndExtra)).to.be.true
 
-      const catWithBadIdType = { id: '1', name: 'badType', color: 'black', mood: 'cranky' }
-      const catWithBadNameType = { id: 1, name: 666, color: 'black' }
-      const catWithBadMoodType = { id: 1, name: 'badType', color: 'black', mood: ['foul'] }
-      const catWithBadMoodTypeAndExtraProps = { ...catWithBadMoodType, shouldChill: true }
       expect(LG.validate(catLg, catWithBadIdType)).to.be.false
       expect(LG.validate(catLg, catWithBadNameType)).to.be.false
       expect(LG.validate(catLg, catWithBadMoodType)).to.be.false
@@ -774,7 +803,71 @@ function testValidation() {
       expect(LG.validate(catLgLax, catWithBadMoodType)).to.be.false
       expect(LG.validate(catLgLax, catWithBadMoodTypeAndExtraProps)).to.be.false
     })
-    xit('should add lg validate properly for an LG with a path', () => {
+
+    // lg with path
+
+    it('should add lg validate properly for an LG with a path', () => {
+      R.forEach(prp => expect(isFunction(R.prop('validatorFn', broCatLg[prp]))).to.be.true, lgProps)
+      R.forEach(prp => expect(isBoolean(R.prop('required', broCatLgLax[prp]))).to.be.true, lgProps)
+      expect(isBoolean(R.prop('_$_extraPropsAllowed', broCatLgLax))).to.be.true
+    })
+
+    it('should validate single properties properly for lg with path', () => {
+
+      // required props present
+      expect(LG.validateProp(broCatLg, 'id', myFamily)).to.be.true
+      expect(LG.validateProp(broCatLg, 'mood', myFamily)).to.be.true
+
+      // non required props not present
+      expect(LG.validateProp(broCatLg, 'name', myCat)).to.be.true
+      expect(LG.validateProp(broCatLg, 'color', myCat)).to.be.true
+
+      // missing required props
+      const emptyFamily = { myBrother: { hisPets: { brosCat: {} } } }
+      expect(LG.validateProp(broCatLg, 'id', emptyFamily)).to.be.false
+      expect(LG.validateProp(broCatLg, 'mood', emptyFamily)).to.be.false
+
+      // // invalid prop types
+      const badFamily = { myBrother: { hisPets: { brosCat: { name: 123, color: { red:'red' }, id: [1], mood: true } } } }
+      expect(LG.validateProp(broCatLg, 'name', badFamily)).to.be.false
+      expect(LG.validateProp(broCatLg, 'color', badFamily)).to.be.false
+      expect(LG.validateProp(broCatLg, 'id', badFamily)).to.be.false
+      expect(LG.validateProp(broCatLg, 'mood', badFamily)).to.be.false
+    })
+
+    it('should validate entire objects properly', () => {
+      const myFamilyWithExtraProps = { myBrother: { hisPets: { brosCat: { ...brosCat, sex: 'female' } } } }
+      expect(LG.validate(broCatLg, myFamily)).to.be.true
+      expect(LG.validate(broCatLg, myFamilyWithExtraProps)).to.be.false
+      expect(LG.validate(broCatLgLax, myFamilyWithExtraProps)).to.be.true
+
+      const catWithMissingRequiredProp = { name: 'moodless' }
+      expect(LG.validate(broCatLg, catWithMissingRequiredProp)).to.be.false
+      expect(LG.validate(broCatLgLax, catWithMissingRequiredProp)).to.be.false
+
+      const myFamilyWithMissingProp = { myBrother: { hisPets: { brosCat: { id: 1, mood: 'sleepy' } } } }
+      expect(LG.validate(broCatLg, myFamilyWithMissingProp)).to.be.true
+      expect(LG.validate(broCatLgLax, myFamilyWithMissingProp)).to.be.true
+
+      const myFamilyWithAllTypesAndExtra = { myBrother: { hisPets: { brosCat: { ...brosCatWithDef, sex: 'female' } } } }
+      expect(LG.validate(broCatLg, myFamilyWithAllTypesAndExtra)).to.be.false
+      expect(LG.validate(broCatLgLax, myFamilyWithAllTypesAndExtra)).to.be.true
+
+      const familyWithBadIdType = { myBrother: { hisPets: { brosCat: catWithBadIdType } } }
+      const familyWithBadNameType = { myBrother: { hisPets: { brosCat: catWithBadNameType } } }
+      const familyWithBadMoodType = { myBrother: { hisPets: { brosCat: catWithBadMoodType } } }
+      const familyWithBadColorType = { myBrother: { hisPets: { brosCat: catWithBadColorType } } }
+      const fineFamily = { myBrother: { hisPets: { brosCat: brosCatWithDef } } }
+      expect(LG.validate(broCatLg, familyWithBadIdType)).to.be.false
+      expect(LG.validate(broCatLg, familyWithBadNameType)).to.be.false
+      expect(LG.validate(broCatLg, familyWithBadMoodType)).to.be.false
+      expect(LG.validate(broCatLg, familyWithBadColorType)).to.be.false
+      expect(LG.validate(broCatLgLax, familyWithBadIdType)).to.be.false
+      expect(LG.validate(broCatLgLax, familyWithBadNameType)).to.be.false
+      expect(LG.validate(broCatLgLax, familyWithBadMoodType)).to.be.false
+      expect(LG.validate(broCatLgLax, familyWithBadColorType)).to.be.false
+      expect(LG.validate(broCatLg, fineFamily)).to.be.true
+      expect(LG.validate(broCatLgLax, fineFamily)).to.be.true
     })
   })
 }

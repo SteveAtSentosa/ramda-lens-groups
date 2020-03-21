@@ -1,5 +1,5 @@
 // TODO:
-// * add validation as input to all specilizations as needed
+// * add validation support for LG.add
 // * don't set a type if valdator exixts and input is wrong type
 // * warnings for all invalid input
 // * allow set/get of props not on the LG?
@@ -14,8 +14,8 @@ import {
   updatePath,
   addLensGroupLenses,
   addLensGroupInternals,
-  addLensGroupValidatorsNew,
-  validateLensGroupInputsNew,
+  addLensGroupValidators,
+  validateLensGroupInputs,
   validateOneProp,
   validateAllProps
 } from './internal'
@@ -43,10 +43,10 @@ import {
 // Returns undefined on invalid inputs.
 // ( [''], ['']|u, ['']|u  {}|u) -> {}
 export const create = (propList, defaults, path, validation) =>
-  validateLensGroupInputsNew('LG.create()', propList, defaults, path, validation) ?
+  validateLensGroupInputs('LG.create()', propList, defaults, path, validation) ?
     R.compose(
       addLensGroupInternals(path),
-      addLensGroupValidatorsNew(propList, validation),
+      addLensGroupValidators(propList, validation),
       addLensGroupLenses
     )(propList, defaults, path) : undefined
 
@@ -55,53 +55,38 @@ export const create = (propList, defaults, path, validation) =>
 // Lens Group Validators
 //*****************************************************************************
 
-// TODO: document
-// export const addValidators = (lg, propList, validatorFnList, requiredList, extraPropsAllowed) =>
-//   isLg(lg) &&
-//   validateValidatorInputs('LG.addValidators()', propList, validatorFnList, requiredList, extraPropsAllowed)
-//     ? addLensGroupValidators(lg, propList, validatorFnList, requiredList, extraPropsAllowed) : lg
-
-// TODO: document
-// TODO: return true or false on invalid input ???? (currently returning false)
+// Validate a property on an object based on lg validators
+// returns true if
+// * prop not required and is not present
+// * prop is present and satisfies lg validators
+// returns false if
+// * prop required but not present
+// * prop present and fails valitation fn
+// * invalid input
+// * lg has no validators
+// {lg} -> '' -> {} -> bool
 export const validateProp = R.curry((lg, prp, obj) =>
   isLgWithValidators(lg) &&
   RA.isString(prp) &&
   RA.isObj(obj) &&
   RA.isObj(lg[prp])
-    ? validateOneProp(lg, prp, obj): false
+    ? validateOneProp(prp, obj, lg): false
 )
 
-// TODO: document
+// validate an object against a lens group validators
+// returns true if
+// * all required props are present
+// * all props associated with the lg are valid
+// returns false if
+// * required props are missing
+// * any prop present fails its valiation fn
+// * extra props are present, but not allowed
+// {lg} -> {} -> bool
 export const validate = R.curry((lg, obj) =>
   isLgWithValidators(lg) &&
   RA.isObj(obj)
     ? validateAllProps(lg, obj): false
 )
-
-// export const addValidators = R.curry((propList, validatorFnList, requiredList, extraProps, lg) =>
-//   isLg(lg) &&
-//   LGU.isStringArray(propList) &&
-//   LGU.isFnArrayOfLength(R.length(propList), validatorFnList) &&
-//   LGU.isBoolArrayOfLength(R.length(propList), requiredList)
-//     ? addLensGroupValidators(propList, validatorFnList, requiredList, lg)
-//     : LGU.warnAndReturn('LG: Invalid input to addValidators()', lg))
-
-// returns true if
-// * prop not required and is not present
-// * prop is present and satisfies valitation fn
-// * validators not present
-// returns false if
-// * prop required but not present
-// * prop present and fails valitation fn
-// * invalid input
-
-// export const validateProp = R.curry((lg, prp, obj) =>
-//   isLg(lg) &&
-//   RA.isString(prp) &&
-//   RA.isObj(obj) ?
-//       ? lg[prp].validatorFn(lg[prp].view(obj))
-//       : LGU.warnAndReturn('LG: Invalid input to validatorFn()', lg));
-
 
 //*****************************************************************************
 // Lens Group View/Set Operations
