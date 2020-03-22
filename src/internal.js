@@ -3,19 +3,19 @@ import * as RA from 'ramda-adjunct'
 import LGU, { warnAndReturn } from './utils'
 import { def, create } from './lensGroups'
 
-const isInternalProp = key => key.substring(0, 3)  === '_$_'
-const isNotInternalProp = R.complement(isInternalProp)
-const hasValidators = R.propEq('_$_hasValidators', true)
-const lgHasProp = R.curry((lg, propName) => RA.isObj(R.prop(propName, lg)))
-const lgDoesNotHaveProp = R.complement(lgHasProp)
-const propRequired = R.curry((lg, prp) => lg[prp].required)
-const getLgProps = R.pipe(R.keys, R.filter(isNotInternalProp))
-const getRequiredLgProps = lg => R.pipe(getLgProps, R.filter(propRequired(lg)))(lg)
-const isExtraProp = (lg, prp) => LGU.doesNotHave(prp, lg)
-const extraPropsPermitted = lg => R.propEq('_$_extraPropsAllowed', true, lg)
-const extraPropsNotPermitted = R.complement(extraPropsPermitted)
-const getPropRequirement = R.curry((lg, prp) => R.path([prp, 'required'], lg))
-const getPropValidatorFn = R.curry((lg, prp) => R.path([prp, 'validatorFn'], lg))
+export const isInternalProp = key => key.substring(0, 3)  === '_$_'
+export const isNotInternalProp = R.complement(isInternalProp)
+export const hasValidators = R.propEq('_$_hasValidators', true)
+export const lgHasProp = R.curry((lg, propName) => RA.isObj(R.prop(propName, lg)))
+export const lgDoesNotHaveProp = R.complement(lgHasProp)
+export const propRequired = R.curry((lg, prp) => lg[prp].required)
+export const getLgProps = R.pipe(R.keys, R.filter(isNotInternalProp))
+export const getRequiredLgProps = lg => R.pipe(getLgProps, R.filter(propRequired(lg)))(lg)
+export const isExtraProp = (lg, prp) => LGU.doesNotHave(prp, lg)
+export const extraPropsPermitted = lg => R.propEq('_$_extraPropsAllowed', true, lg)
+export const extraPropsNotPermitted = R.complement(extraPropsPermitted)
+export const getPropRequirement = R.curry((lg, prp) => R.path([prp, 'required'], lg))
+export const getPropValidatorFn = R.curry((lg, prp) => R.path([prp, 'validatorFn'], lg))
 
 
 // check for lg, report warning if not

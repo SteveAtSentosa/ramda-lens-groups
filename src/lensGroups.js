@@ -17,7 +17,8 @@ import {
   addLensGroupValidators,
   validateLensGroupInputs,
   validateOneProp,
-  validateAllProps
+  validateAllProps,
+  getRequiredLgProps
 } from './internal'
 
 
@@ -87,6 +88,9 @@ export const validate = R.curry((lg, obj) =>
   RA.isObj(obj)
     ? validateAllProps(lg, obj): false
 )
+
+export const requiredProps = lg =>
+  isLgWithValidators(lg) ? getRequiredLgProps(lg): []
 
 //*****************************************************************************
 // Lens Group View/Set Operations

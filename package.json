@@ -4,8 +4,8 @@
   "description": "An easy way to manage a set of ramda lenses focused on props of a particular object type",
   "author": "Steven Saunders",
   "license": "ISC",
-  "main": "lib/index.js",
-  "jsnext:main": "es/index.js",
+  "main": "lib/lensGroups.js",
+  "jsnext:main": "es/lensGroups.js",
   "files": [
     "dist",
     "lib",
@@ -60,10 +60,11 @@
     "build:umd:min": "webpack --mode=production --output-filename=ramda-lens-groups.min.js",
     "build": "yarn clean && yarn build:umd && yarn build:umd:min && yarn build:es && yarn build:cjs",
     "prepublish": "npm run clean && npm test && npm run build",
-    "test": "mocha --require babel-core/register",
+    "test": "mocha --r ./.register.babel.js",
     "testDocs": "babel-node docs/testDocExamples.js; babel-node docs/testApiExamples.js",
     "testWhyLenses": "babel-node docs/testWhyLenses.js",
     "testIndex": "babel-node ./index.js",
-    "watch:test": "onchange 'src/**/*.js' 'test/**/*.js' -- yarn test"
+    "watch:test": "onchange 'src/**/*.js' 'test/**/*.js' -- yarn test",
+    "watch:build": "onchange 'src/**/*.js' -- yarn build"
   }
 }
