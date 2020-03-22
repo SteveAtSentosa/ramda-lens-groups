@@ -26,30 +26,43 @@ import {
 // Lens Group Creation
 //*****************************************************************************
 
+// concept of validatinPred
+// * returns true/false against value pointed at by lg prop
+// * as prop `description` added which can be used for reporting
+
+
 // Given a list of property names in propList, create a group of lenses
 // focused on those property names.  defaults for each property name,
 // a path to the target object, and validators may be optionally provided.
 // if validators is provided all of the following props are requied
-// validators: {
-//   validatorFnList: [fxns],
-//     same length as propList
-//     List of predicate fxns to validate props in propList same length as propList
-//     should accept a value, and return true if valid, false if not (for example isString)
-//   requiredList: [bool]
-//     same length as propList
-//     list of booleans informing which props in propList are and are not required
-//   extraPropsAllowed: bool
-//     single boolean specifying ether props in addition to those on lg or OK
+// lgInputs: {
+//   propList: list of prop names in the LG (required)
+//   defaults: list of default values for props in propList (optional)
+//   path: path to target object if is nested within another object (optional)
+//   required: list of bools indication if props in propList are required (optional)
+//   validators: list of valiation pred fxns for props in propList (optional)
+//   extraProps: single boolean specifying ether props in addition to those on lg or OK
 //  }
+// If you provide valiation info, validators / required / extraProps must all be supplied
 // Returns undefined on invalid inputs.
 // ( [''], ['']|u, ['']|u  {}|u) -> {}
-export const create = (propList, defaults, path, validation) =>
-  validateLensGroupInputs('LG.create()', propList, defaults, path, validation) ?
+
+export const create = lgInputs =>
+  validateLensGroupInputs('LG.create()', lgInputs) ?
     R.compose(
-      addLensGroupInternals(path),
-      addLensGroupValidators(propList, validation),
+      addLensGroupInternals(lgInputs),
+      addLensGroupValidators(lgInputs),
       addLensGroupLenses
-    )(propList, defaults, path) : undefined
+    )(lgInputs) : undefined
+
+
+// export const create = (propList, defaults, path, validation) =>
+//   validateLensGroupInputs('LG.create()', propList, defaults, path, validation) ?
+//     R.compose(
+//       addLensGroupInternals(path),
+//       addLensGroupValidators(propList, validation),
+//       addLensGroupLenses
+//     )(propList, defaults, path) : undefined
 
 
 //*****************************************************************************
@@ -66,7 +79,7 @@ export const create = (propList, defaults, path, validation) =>
 // * invalid input
 // * lg has no validators
 // {lg} -> '' -> {} -> bool
-export const validateProp = R.curry((lg, prp, obj) =>
+export const propIsValid = R.curry((lg, prp, obj) =>
   isLgWithValidators(lg) &&
   RA.isString(prp) &&
   RA.isObj(obj) &&
@@ -243,15 +256,12 @@ export const addDefExcept = (lg, noDefProps, obj) =>
 //*****************************************************************************
 
 // Returns new lens group which includes all of the lenses from lg, plus
-// additional lenses for each property name in propList. defaults can
-// be provided for the new lenses. If a lens in lg already exists for a property name,
-// the existing lens default will will be replaced (or removed when no default supplied)
-// Returns undefined on input errors.
-// [''] -> [''] -> {lg} -> {lg}
-export const add = R.curry((propList, defaults, lg) =>
+// additional lenses defaults etc specified in lgInputs
+// {lgInputs} -> {lg} -> {updatedLg}
+export const add = R.curry((lgInputs, lg) =>
   isLg(lg) &&
-  LGU.isStringArray(propList)
-    ? addLensGroupLenses(propList, defaults, lg._$_path, lg) : undefined)
+  validateLensGroupInputs('LG.add()', lgInputs) ?
+    addLensGroupLenses(lgInputs, lg) : undefined)
 
 // Return a new lens group, based on the lenses in lg, without lenses
 // to the property names in propList. Returns undefined on input errors

@@ -6,103 +6,115 @@ import LGU from '../src/utils'
 export default function runUtilTests() {
   describe('Lens Group Utils', () => {
     testGeneralUtils()
-    testArrayTypes()
+    // testArrayTypes()
   })
 }
 
 function testGeneralUtils() {
   describe('General Utils', () => {
-    it('should detect non nil array entry', () => {
-      expect(LGU.arrayEntryIsNotNil(0, [{}, 'a', 0])).to.equal(true)
-      expect(LGU.arrayEntryIsNil(0, [{}, 'a', 0])).to.equal(false)
-      expect(LGU.arrayEntryIsNotUndef(0, [{}, 'a', 0])).to.equal(true)
-      expect(LGU.arrayEntryIsUndef(0, [{}, 'a', 0])).to.equal(false)
+    // it('should detect non nil array entry', () => {
+    //   expect(LGU.arrayEntryIsNotNil(0, [{}, 'a', 0])).to.equal(true)
+    //   expect(LGU.arrayEntryIsNil(0, [{}, 'a', 0])).to.equal(false)
+    //   expect(LGU.arrayEntryIsNotUndef(0, [{}, 'a', 0])).to.equal(true)
+    //   expect(LGU.arrayEntryIsUndef(0, [{}, 'a', 0])).to.equal(false)
 
-      expect(LGU.arrayEntryIsNotNil(1, [{}, 'a', 0])).to.equal(true)
-      expect(LGU.arrayEntryIsNil(1, [{}, 'a', 0])).to.equal(false)
-      expect(LGU.arrayEntryIsNotUndef(1, [{}, 'a', 0])).to.equal(true)
-      expect(LGU.arrayEntryIsUndef(1, [{}, 'a', 0])).to.equal(false)
+    //   expect(LGU.arrayEntryIsNotNil(1, [{}, 'a', 0])).to.equal(true)
+    //   expect(LGU.arrayEntryIsNil(1, [{}, 'a', 0])).to.equal(false)
+    //   expect(LGU.arrayEntryIsNotUndef(1, [{}, 'a', 0])).to.equal(true)
+    //   expect(LGU.arrayEntryIsUndef(1, [{}, 'a', 0])).to.equal(false)
 
-      expect(LGU.arrayEntryIsNotNil(2, [{}, 'a', 0])).to.equal(true)
-      expect(LGU.arrayEntryIsNil(2, [{}, 'a', 0])).to.equal(false)
-      expect(LGU.arrayEntryIsNotUndef(2, [{}, 'a', 0])).to.equal(true)
-      expect(LGU.arrayEntryIsUndef(2, [{}, 'a', 0])).to.equal(false)
+    //   expect(LGU.arrayEntryIsNotNil(2, [{}, 'a', 0])).to.equal(true)
+    //   expect(LGU.arrayEntryIsNil(2, [{}, 'a', 0])).to.equal(false)
+    //   expect(LGU.arrayEntryIsNotUndef(2, [{}, 'a', 0])).to.equal(true)
+    //   expect(LGU.arrayEntryIsUndef(2, [{}, 'a', 0])).to.equal(false)
 
-      expect(LGU.arrayEntryIsNotNil(2, [{}, 'a', null])).to.equal(false)
-      expect(LGU.arrayEntryIsNil(2, [{}, 'a', null])).to.equal(true)
-      expect(LGU.arrayEntryIsNotUndef(2, [{}, 'a', null])).to.equal(true)
-      expect(LGU.arrayEntryIsUndef(2, [{}, 'a', null])).to.equal(false)
+    //   expect(LGU.arrayEntryIsNotNil(2, [{}, 'a', null])).to.equal(false)
+    //   expect(LGU.arrayEntryIsNil(2, [{}, 'a', null])).to.equal(true)
+    //   expect(LGU.arrayEntryIsNotUndef(2, [{}, 'a', null])).to.equal(true)
+    //   expect(LGU.arrayEntryIsUndef(2, [{}, 'a', null])).to.equal(false)
 
-      expect(LGU.arrayEntryIsNotNil(0, [undefined])).to.equal(false)
-      expect(LGU.arrayEntryIsNil(0, [undefined])).to.equal(true)
-      expect(LGU.arrayEntryIsNotUndef(0, [undefined])).to.equal(false)
-      expect(LGU.arrayEntryIsUndef(0, [undefined])).to.equal(true)
+    //   expect(LGU.arrayEntryIsNotNil(0, [undefined])).to.equal(false)
+    //   expect(LGU.arrayEntryIsNil(0, [undefined])).to.equal(true)
+    //   expect(LGU.arrayEntryIsNotUndef(0, [undefined])).to.equal(false)
+    //   expect(LGU.arrayEntryIsUndef(0, [undefined])).to.equal(true)
 
-      expect(LGU.arrayEntryOrUndef(0, [undefined])).to.equal(undefined)
-      expect(LGU.arrayEntryOrUndef(1, [0, null])).to.equal(null)
-      expect(LGU.arrayEntryOrUndef(1, [{}, undefined, 0])).to.equal(undefined)
-      expect(LGU.arrayEntryOrUndef(0, [{}, 'a', 0])).to.deep.equal({})
-      expect(LGU.arrayEntryOrUndef(1, [{}, 'a', 0])).to.equal('a')
-      expect(LGU.arrayEntryOrUndef(2, [{}, 'a', 0])).to.equal(0)
-      expect(LGU.arrayEntryOrUndef(3, [{}, 'a', 0])).to.equal(undefined)
+    //   expect(LGU.arrayEntryOrUndef(0, [undefined])).to.equal(undefined)
+    //   expect(LGU.arrayEntryOrUndef(1, [0, null])).to.equal(null)
+    //   expect(LGU.arrayEntryOrUndef(1, [{}, undefined, 0])).to.equal(undefined)
+    //   expect(LGU.arrayEntryOrUndef(0, [{}, 'a', 0])).to.deep.equal({})
+    //   expect(LGU.arrayEntryOrUndef(1, [{}, 'a', 0])).to.equal('a')
+    //   expect(LGU.arrayEntryOrUndef(2, [{}, 'a', 0])).to.equal(0)
+    //   expect(LGU.arrayEntryOrUndef(3, [{}, 'a', 0])).to.equal(undefined)
 
-      expect(LGU.arrayEntryOrUndef(1, [0])).to.equal(undefined)
-      expect(LGU.arrayEntryOrUndef(1, {})).to.equal(undefined)
-    })
-    it('should reject non array, undefined array, or undefined array entry', () => {
-      expect(LGU.arrayEntryIsNotNil(3, [{}, 'a', 0])).to.equal(false)
-      expect(LGU.arrayEntryIsNil(3, [{}, 'a', 0])).to.equal(true)
-      expect(LGU.arrayEntryIsNotUndef(3, [{}, 'a', 0])).to.equal(false)
-      expect(LGU.arrayEntryIsUndef(3, [{}, 'a', 0])).to.equal(true)
+    //   expect(LGU.arrayEntryOrUndef(1, [0])).to.equal(undefined)
+    //   expect(LGU.arrayEntryOrUndef(1, {})).to.equal(undefined)
+    // })
+    // it('should reject non array, undefined array, or undefined array entry', () => {
+    //   expect(LGU.arrayEntryIsNotNil(3, [{}, 'a', 0])).to.equal(false)
+    //   expect(LGU.arrayEntryIsNil(3, [{}, 'a', 0])).to.equal(true)
+    //   expect(LGU.arrayEntryIsNotUndef(3, [{}, 'a', 0])).to.equal(false)
+    //   expect(LGU.arrayEntryIsUndef(3, [{}, 'a', 0])).to.equal(true)
 
-      expect(LGU.arrayEntryIsNotNil(undefined)).to.equal(false)
-      expect(LGU.arrayEntryIsNil(undefined)).to.equal(true)
-      expect(LGU.arrayEntryIsNotUndef(undefined)).to.equal(false)
-      expect(LGU.arrayEntryIsUndef(undefined)).to.equal(true)
+    //   expect(LGU.arrayEntryIsNotNil(undefined)).to.equal(false)
+    //   expect(LGU.arrayEntryIsNil(undefined)).to.equal(true)
+    //   expect(LGU.arrayEntryIsNotUndef(undefined)).to.equal(false)
+    //   expect(LGU.arrayEntryIsUndef(undefined)).to.equal(true)
 
-      expect(LGU.arrayEntryIsNotNil({})).to.equal(false)
-      expect(LGU.arrayEntryIsNil({})).to.equal(true)
-      expect(LGU.arrayEntryIsNotUndef({})).to.equal(false)
-      expect(LGU.arrayEntryIsUndef({})).to.equal(true)
+    //   expect(LGU.arrayEntryIsNotNil({})).to.equal(false)
+    //   expect(LGU.arrayEntryIsNil({})).to.equal(true)
+    //   expect(LGU.arrayEntryIsNotUndef({})).to.equal(false)
+    //   expect(LGU.arrayEntryIsUndef({})).to.equal(true)
 
-      expect(LGU.arrayEntryIsNotNil(1, [{}, 'a', 0])).to.equal(true)
-      expect(LGU.arrayEntryIsNil(1, [{}, 'a', 0])).to.equal(false)
-      expect(LGU.arrayEntryIsNotUndef(1, [{}, 'a', 0])).to.equal(true)
-      expect(LGU.arrayEntryIsUndef(1, [{}, 'a', 0])).to.equal(false)
-    })
-    it('should detect full arrays, empty arrays and non arrays', () => {
-      expect(LGU.isNonEmptyArray()).to.equal(false)
-      expect(LGU.isNonEmptyArray(1)).to.equal(false)
-      expect(LGU.isNonEmptyArray({})).to.equal(false)
-      expect(LGU.isNonEmptyArray([])).to.equal(false)
-      expect(LGU.isNonEmptyArray([1])).to.equal(true)
-      expect(LGU.isNonEmptyArray(['a', {}])).to.equal(true)
-    })
+    //   expect(LGU.arrayEntryIsNotNil(1, [{}, 'a', 0])).to.equal(true)
+    //   expect(LGU.arrayEntryIsNil(1, [{}, 'a', 0])).to.equal(false)
+    //   expect(LGU.arrayEntryIsNotUndef(1, [{}, 'a', 0])).to.equal(true)
+    //   expect(LGU.arrayEntryIsUndef(1, [{}, 'a', 0])).to.equal(false)
+    // })
+    // it('should detect full arrays, empty arrays and non arrays', () => {
+    //   expect(LGU.isNonEmptyArray()).to.equal(false)
+    //   expect(LGU.isNonEmptyArray(1)).to.equal(false)
+    //   expect(LGU.isNonEmptyArray({})).to.equal(false)
+    //   expect(LGU.isNonEmptyArray([])).to.equal(false)
+    //   expect(LGU.isNonEmptyArray([1])).to.equal(true)
+    //   expect(LGU.isNonEmptyArray(['a', {}])).to.equal(true)
+    // })
 
-    it('should paste props correctly', () => {
-      const ab = { a:'a', b:'b' }
-      const cd = { c:'c', d:'d' }
-      expect(LGU.pasteProp('a', ab, cd)).to.deep.equal({ ...cd, a:'a' })
-      expect(LGU.pasteProp('c', ab, cd)).to.deep.equal(cd)
-      expect(LGU.pasteProps(['a', 'b'], ab, cd)).to.deep.equal({ ...ab, ...cd })
-      expect(LGU.pasteProps(['a', 'c'], ab, cd)).to.deep.equal({ ...cd, a:'a' })
-    })
+    // it('should paste props correctly', () => {
+    //   const ab = { a:'a', b:'b' }
+    //   const cd = { c:'c', d:'d' }
+    //   expect(LGU.pasteProp('a', ab, cd)).to.deep.equal({ ...cd, a:'a' })
+    //   expect(LGU.pasteProp('c', ab, cd)).to.deep.equal(cd)
+    //   expect(LGU.pasteProps(['a', 'b'], ab, cd)).to.deep.equal({ ...ab, ...cd })
+    //   expect(LGU.pasteProps(['a', 'c'], ab, cd)).to.deep.equal({ ...cd, a:'a' })
+    // })
 
-    it('should determin array subsets correctly', () => {
-      expect(LGU.arrayIsSubsetOf([], [])).to.be.true
-      expect(LGU.arrayIsSubsetOf(['a'], [])).to.be.true
-      expect(LGU.arrayIsSubsetOf(['a'], ['a'])).to.be.true
-      expect(LGU.arrayIsSubsetOf(['a', 'b', 'c'], ['a'])).to.be.true
-      expect(LGU.arrayIsSubsetOf(['c', 'b', 'a'], ['a', 'b', 'c'])).to.be.true
-      expect(LGU.arrayIsSubsetOf(['c', 'b', 'a'], ['z', 'b', 'c'])).to.be.false
-      expect(LGU.arrayIsSubsetOf(['a', 'b'], ['a', 'b', 'c'])).to.be.false
-      expect(LGU.arrayIsNotSubsetOf([], [])).to.be.false
-      expect(LGU.arrayIsNotSubsetOf(['a'], [])).to.be.false
-      expect(LGU.arrayIsNotSubsetOf(['a'], ['a'])).to.be.false
-      expect(LGU.arrayIsNotSubsetOf(['a', 'b', 'c'], ['a'])).to.be.false
-      expect(LGU.arrayIsNotSubsetOf(['c', 'b', 'a'], ['a', 'b', 'c'])).to.be.false
-      expect(LGU.arrayIsNotSubsetOf(['c', 'b', 'a'], ['z', 'b', 'c'])).to.be.true
-      expect(LGU.arrayIsNotSubsetOf(['a', 'b'], ['a', 'b', 'c'])).to.be.true
+    // it('should determin array subsets correctly', () => {
+    //   expect(LGU.arrayIsSubsetOf([], [])).to.be.true
+    //   expect(LGU.arrayIsSubsetOf(['a'], [])).to.be.true
+    //   expect(LGU.arrayIsSubsetOf(['a'], ['a'])).to.be.true
+    //   expect(LGU.arrayIsSubsetOf(['a', 'b', 'c'], ['a'])).to.be.true
+    //   expect(LGU.arrayIsSubsetOf(['c', 'b', 'a'], ['a', 'b', 'c'])).to.be.true
+    //   expect(LGU.arrayIsSubsetOf(['c', 'b', 'a'], ['z', 'b', 'c'])).to.be.false
+    //   expect(LGU.arrayIsSubsetOf(['a', 'b'], ['a', 'b', 'c'])).to.be.false
+    //   expect(LGU.arrayIsNotSubsetOf([], [])).to.be.false
+    //   expect(LGU.arrayIsNotSubsetOf(['a'], [])).to.be.false
+    //   expect(LGU.arrayIsNotSubsetOf(['a'], ['a'])).to.be.false
+    //   expect(LGU.arrayIsNotSubsetOf(['a', 'b', 'c'], ['a'])).to.be.false
+    //   expect(LGU.arrayIsNotSubsetOf(['c', 'b', 'a'], ['a', 'b', 'c'])).to.be.false
+    //   expect(LGU.arrayIsNotSubsetOf(['c', 'b', 'a'], ['z', 'b', 'c'])).to.be.true
+    //   expect(LGU.arrayIsNotSubsetOf(['a', 'b'], ['a', 'b', 'c'])).to.be.true
+    // })
+    it('should property presense detection properly', () => {
+      const obj = { a: 'a', b: 'b', c: 'c' }
+      expect(LGU.hasAny(['a', 'b'], obj)).to.be.true
+      expect(LGU.hasAny(['z'], obj)).to.be.false
+      expect(LGU.hasAll(['a'], obj)).to.be.true
+      expect(LGU.hasAll(['a', 'b', 'c'], obj)).to.be.true
+      expect(LGU.hasAll(['z'], obj)).to.be.false
+      expect(LGU.hasAll(['a', 'b', 'c', 'z'], obj)).to.be.false
+      expect(LGU.doesNotHaveAll(['a', 'b', 'c'], obj)).to.be.false
+      expect(LGU.doesNotHaveAll(['z'], obj)).to.be.true
+      expect(LGU.doesNotHaveAll(['a', 'b', 'c', 'z'], obj)).to.be.true
     })
   })
 }

@@ -42,28 +42,32 @@ function getBaseTestSet() {
     defCat: { id: -1, name: 'defName', color: 'defColor', mood: 'defMood' }
   }
 
-  const validationBase = {
-    validatorFnList: testSet.lgValidators,
-    requiredList: testSet.lgRequired,
-  }
-  const validation = { ...validationBase, extraPropsAllowed: false }
-  const validationLax = { ...validationBase, extraPropsAllowed: true }
-
-  const validationBaseBro = {
-    validatorFnList: testSet.lgValidators,
-    requiredList: testSet.LgRequiredBro,
-  }
-  const validationBro = { ...validationBaseBro, extraPropsAllowed: false }
-  const validationBroLax = { ...validationBaseBro, extraPropsAllowed: true }
-
   const myCatWithDef = { ...testSet.defCat, ...testSet.myCat  }
   const brosCatWithDef = { ...testSet.defCat, ...testSet.brosCat }
   const myFamily = { myBrother: { hisPets : { brosCat: testSet.brosCat } } }
   const myFamilyWithDef = { myBrother: { hisPets : { brosCat: brosCatWithDef } } }
-  const catLg = LG.create(testSet.lgProps, testSet.lgDefs, [], validation)
-  const catLgLax = LG.create(testSet.lgProps, testSet.lgDefs, [], validationLax)
-  const broCatLg = LG.create(testSet.lgProps, testSet.lgDefs, testSet.familyPath, validationBro)
-  const broCatLgLax = LG.create(testSet.lgProps, testSet.lgDefs, testSet.familyPath, validationBroLax)
+
+  const catLgInput = {
+    propList: testSet.lgProps,
+    defaults: testSet.lgDefs,
+    required: testSet.lgRequired,
+    validators: testSet.lgValidators,
+  }
+
+  const catLg = LG.create({ ...catLgInput, extraProps: false })
+  const catLgLax = LG.create({ ...catLgInput, extraProps: true })
+
+  const broCatLgInput = {
+    propList: testSet.lgProps,
+    defaults: testSet.lgDefs,
+    path: testSet.familyPath,
+    required: testSet.LgRequiredBro,
+    validators: testSet.lgValidators,
+  }
+
+  const broCatLg = LG.create({ ...broCatLgInput, extraProps: false })
+  const broCatLgLax = LG.create({ ...broCatLgInput, extraProps: true })
+
   return {
     ...testSet,
     myFamily,
@@ -84,29 +88,32 @@ function getBaseTestSet() {
 function testInvalidArgs() {
   describe('Invalid lens creation', () => {
 
-    it('should log error and return undefined on invalid create', () => {
-      expect(LG.create()).to.equal(undefined)
-      expect(LG.create(['p'], {})).to.equal(undefined)
-      expect(LG.create(['p'], ['d'], 10)).to.equal(undefined)
+    it('should validate invalid input handling', () => {
     })
 
-    it('should log error and return undefined on non-lg', () => {
-      const obj = {}
-      expect(LG.view({}, 'prp', obj)).to.equal(undefined)
-      expect(LG.viewOr('lg', 'fallback', 'prp', obj)).to.equal(undefined)
-      expect(LG.viewTarget(99, obj)).to.equal(undefined)
+    // it('should log error and return undefined on invalid create', () => {
+    //   expect(LG.create()).to.equal(undefined)
+    //   expect(LG.create(['p'], {})).to.equal(undefined)
+    //   expect(LG.create(['p'], ['d'], 10)).to.equal(undefined)
+    // })
 
-      // TODO: test the rest of these someday
-      // export const viewTarget = (lg, obj) =>
-      // export const clone = (lg, toClone) =>
-      // export const cloneWithDef = (lg, toClone) =>
-      // export const def = lg => cloneWithDef(lg, {});
-      // export const add = (lg, propList, defaults) =>
-      // export const remove = R.curry((lg, propList) =>
-      // export const appendPath = R.curry((path, lg) =>
-      // export const prependPath = R.curry((path, lg) =>
-      // export const replacePath = R.curry((path, lg) =>
-    })
+    // it('should log error and return undefined on non-lg', () => {
+    //   const obj = {}
+    //   expect(LG.view({}, 'prp', obj)).to.equal(undefined)
+    //   expect(LG.viewOr('lg', 'fallback', 'prp', obj)).to.equal(undefined)
+    //   expect(LG.viewTarget(99, obj)).to.equal(undefined)
+
+    // TODO: test the rest of these someday
+    // export const viewTarget = (lg, obj) =>
+    // export const clone = (lg, toClone) =>
+    // export const cloneWithDef = (lg, toClone) =>
+    // export const def = lg => cloneWithDef(lg, {});
+    // export const add = (lg, propList, defaults) =>
+    // export const remove = R.curry((lg, propList) =>
+    // export const appendPath = R.curry((path, lg) =>
+    // export const prependPath = R.curry((path, lg) =>
+    // export const replacePath = R.curry((path, lg) =>
+    // })
   })
 }
 
@@ -148,7 +155,7 @@ function testWithoutDefaults() {
     })
     it('should handle falsy values correctly', () => {
       const falsey = { undef: undefined, nul: null, zero: 0, emptyStr: '' }
-      const lg = LG.create(['undef', 'nul', 'zero', 'emptyStr'])
+      const lg = LG.create({ propList: ['undef', 'nul', 'zero', 'emptyStr'] })
       expect(LG.clone(lg, falsey)).to.deep.equal(R.dissoc('undef', falsey))
       expect(LG.viewOr(lg, 'u', 'undef', falsey)).to.equal('u')
     })
@@ -198,7 +205,7 @@ function testWithDefaults() {
     })
     it('should return undefined for non-defaulted props', () => {
       const lgDefs2 = [-1, 'defName', 'defColor']
-      const lg2 = LG.create(lgProps, lgDefs2)
+      const lg2 = LG.create({ propList: lgProps, defaults: lgDefs2 })
       expect(LG.viewOrDef(lg2, 'name', myCat)).to.equal('sunshine')
       expect(LG.viewOrDef(lg2, 'mood', myCat)).to.equal(undefined)
     })
@@ -209,7 +216,7 @@ function testWithDefaults() {
     })
     it('should handle falsy values correctly', () => {
       const falsey = { undef: undefined, nul: null, zero: 0, emptyStr: '' }
-      const lg = LG.create(['undef', 'nul', 'zero', 'emptyStr'], [undefined, null, 0, ''])
+      const lg = LG.create({ propList: ['undef', 'nul', 'zero', 'emptyStr'], defaults: [undefined, null, 0, ''] })
       expect(LG.viewOrDef(lg, 'undef', falsey)).to.equal(undefined)
       expect(LG.viewOrDef(lg, 'undef', {})).to.equal(undefined)
       expect(LG.viewOrDef(lg, 'zero', falsey)).to.equal(0)
@@ -540,7 +547,7 @@ function testClone() {
     })
 
     it('Should add null defaults', () => {
-      const catLgWithNullDefaults = LG.add(['id', 'mood'], [null, null], catLg)
+      const catLgWithNullDefaults = LG.add({ propList: ['id', 'mood'], defaults: [null, null] }, catLg)
       expect(LG.def(catLgWithNullDefaults)).to.deep.equal({ ...defCat, id: null, mood: null  })
     })
   })
@@ -593,8 +600,9 @@ function testLensPropSpecialization() {
     const plusCatClonedFromMyCatWithDefExp = { ...myCatWithDef, size: 'defSize'  }
 
     it('should add new, and retain existing lenses', () => {
-      const plusCatLg = LG.add(plusProps, plusDefs, catLg)
+      const plusCatLg = LG.add({ propList: plusProps, defaults: plusDefs }, catLg)
       expect(LG.view(plusCatLg, 'name', myCat)).to.equal('sunshine')
+
       expect(LG.view(plusCatLg, 'size', myCat)).to.equal(undefined)
       expect(LG.viewOrDef(plusCatLg, 'size', myCat)).to.equal('defSize')
       expect(LG.viewOrDef(plusCatLg, 'age', myCat)).to.equal(undefined)
@@ -608,7 +616,7 @@ function testLensPropSpecialization() {
     })
 
     it('should remove lenses', () => {
-      const plusCatLg = LG.add(plusProps, plusDefs, catLg)
+      const plusCatLg = LG.add({ propList: plusProps, defaults: plusDefs }, catLg)
       const minusCat = R.dissoc('color', myCat)
       const minusCatDef = R.dissoc('color', defCat)
       const minusCatLg1 = LG.remove(['color'], catLg)
@@ -620,25 +628,26 @@ function testLensPropSpecialization() {
     })
 
     it('should add new, and retain existing lenses, with path', () => {
-      const brosPlusCatLg = LG.add(['sex'], ['defSex'], broCatLg)
+      const brosPlusCatLg = LG.add({ propList: ['sex'], defaults: ['defSex'] }, broCatLg)
       const brosCatPlusDefExp = { ...defCat, sex: 'defSex' }
       expect(LG.def(brosPlusCatLg)).to.deep.equal(brosCatPlusDefExp)
       const pl = ['1', '2', '3', '4', '5', '6']
-      const ouch = LG.remove(R.reverse(pl), LG.add(pl, [], broCatLg))
+      const ouch = LG.remove(R.reverse(pl), LG.add({ propList: pl, defaults: [] }, broCatLg))
       expect(LG.def(ouch)).to.deep.equal(defCat)
       expect(LG.cloneWithDef(ouch, myFamily)).to.deep.equal(brosCatWithDef)
     })
 
     it('should handle duplicates', () => {
-      const catDupLg = LG.add(['id', 'mood'], [99], catLg) // NOTE: Default from Mood removed
+      const catDupLg = LG.add({ propList: ['id', 'mood'], defaults: [99] }, catLg) // NOTE: Default from Mood removed
       expect(LG.viewOrDef(catDupLg, 'id', myCat)).to.equal(99)
       expect(LG.viewOrDef(catDupLg, 'mood', myCat)).to.equal(undefined)
       const newDefs = [['name', 'color', 'mood'], ['newDefName', 'newDefColor', 'newDefMood']]
-      const catNewDefLg = LG.add(newDefs[0], newDefs[1], catDupLg)
+      const catNewDefLg = LG.add({ propList: newDefs[0], defaults: newDefs[1] }, catDupLg)
       expect(LG.def(catNewDefLg)).to.deep.equal({ id: 99, name: 'newDefName', color: 'newDefColor', mood: 'newDefMood' })
     })
+
     it('should handle currying', () => {
-      const addPlusLenses = LG.add(plusProps, plusDefs)
+      const addPlusLenses = LG.add({ propList: plusProps, defaults: plusDefs })
       const plusCatLg = addPlusLenses(catLg)
       expect(LG.def(plusCatLg)).to.deep.equal(plusCatDefaultExp)
       const minusCat = R.dissoc('color', myCat)
@@ -707,12 +716,12 @@ function testLensPathSpecialization() {
       const emptyFamily =  { myBrother: { hisPets: { brosCat: {} } } }
       const badFamily = { myBrother: { hisPets: { brosCat: { name: 'stinky', color: ['red'] } } } }
 
-      expect(LG.validateProp(synthesizedBroCatLg, 'name', synthesizedFamily)).to.be.true
-      expect(LG.validateProp(synthesizedBroCatLg, 'color', synthesizedFamily)).to.be.true
-      expect(LG.validateProp(synthesizedBroCatLg, 'id', synthesizedFamily)).to.be.true
-      expect(LG.validateProp(synthesizedBroCatLg, 'mood', synthesizedFamily)).to.be.true
-      expect(LG.validateProp(synthesizedBroCatLg, 'name', emptyFamily)).to.be.false
-      expect(LG.validateProp(synthesizedBroCatLg, 'color', emptyFamily)).to.be.false
+      expect(LG.propIsValid(synthesizedBroCatLg, 'name', synthesizedFamily)).to.be.true
+      expect(LG.propIsValid(synthesizedBroCatLg, 'color', synthesizedFamily)).to.be.true
+      expect(LG.propIsValid(synthesizedBroCatLg, 'id', synthesizedFamily)).to.be.true
+      expect(LG.propIsValid(synthesizedBroCatLg, 'mood', synthesizedFamily)).to.be.true
+      expect(LG.propIsValid(synthesizedBroCatLg, 'name', emptyFamily)).to.be.false
+      expect(LG.propIsValid(synthesizedBroCatLg, 'color', emptyFamily)).to.be.false
 
       expect(LG.validate(synthesizedBroCatLg, synthesizedFamily)).to.be.true
       expect(LG.validate(synthesizedBroCatLg, emptyFamily)).to.be.false
@@ -748,32 +757,33 @@ function testValidation() {
     // lg without path
 
     it('should add lg validators properly', () => {
-      R.forEach(prp => expect(isFunction(R.prop('validatorFn', catLg[prp]))).to.be.true, lgProps)
+      R.forEach(prp => expect(isFunction(R.prop('validator', catLg[prp]))).to.be.true, lgProps)
       R.forEach(prp => expect(isBoolean(R.prop('required', catLgLax[prp]))).to.be.true, lgProps)
-      expect(isBoolean(R.prop('_$_extraPropsAllowed', catLgLax))).to.be.true
+      expect(R.prop('_$_extraProps', catLg)).to.be.false
+      expect(R.prop('_$_extraProps', catLgLax)).to.be.true
     })
 
     it('should validate single properties properly', () => {
 
       // required props present
-      expect(LG.validateProp(catLg, 'name', myCat)).to.be.true
-      expect(LG.validateProp(catLg, 'color', myCat)).to.be.true
+      expect(LG.propIsValid(catLg, 'name', myCat)).to.be.true
+      expect(LG.propIsValid(catLg, 'color', myCat)).to.be.true
 
       // non required props not present
-      expect(LG.validateProp(catLg, 'id', myCat)).to.be.true
-      expect(LG.validateProp(catLg, 'mood', myCat)).to.be.true
+      expect(LG.propIsValid(catLg, 'id', myCat)).to.be.true
+      expect(LG.propIsValid(catLg, 'mood', myCat)).to.be.true
 
       // missing required props
       const emptyCat = {}
-      expect(LG.validateProp(catLg, 'name', emptyCat)).to.be.false
-      expect(LG.validateProp(catLg, 'color', emptyCat)).to.be.false
+      expect(LG.propIsValid(catLg, 'name', emptyCat)).to.be.false
+      expect(LG.propIsValid(catLg, 'color', emptyCat)).to.be.false
 
       // invalid prop types
       const badCat = { name: {}, color: 2, id: 'id', mood: false }
-      expect(LG.validateProp(catLg, 'name', badCat)).to.be.false
-      expect(LG.validateProp(catLg, 'color', badCat)).to.be.false
-      expect(LG.validateProp(catLg, 'id', badCat)).to.be.false
-      expect(LG.validateProp(catLg, 'mood', badCat)).to.be.false
+      expect(LG.propIsValid(catLg, 'name', badCat)).to.be.false
+      expect(LG.propIsValid(catLg, 'color', badCat)).to.be.false
+      expect(LG.propIsValid(catLg, 'id', badCat)).to.be.false
+      expect(LG.propIsValid(catLg, 'mood', badCat)).to.be.false
     })
 
     it('should validate entire objects properly', () => {
@@ -804,35 +814,35 @@ function testValidation() {
       expect(LG.validate(catLgLax, catWithBadMoodTypeAndExtraProps)).to.be.false
     })
 
-    // lg with path
+    // // lg with path
 
     it('should add lg validate properly for an LG with a path', () => {
-      R.forEach(prp => expect(isFunction(R.prop('validatorFn', broCatLg[prp]))).to.be.true, lgProps)
+      R.forEach(prp => expect(isFunction(R.prop('validator', broCatLg[prp]))).to.be.true, lgProps)
       R.forEach(prp => expect(isBoolean(R.prop('required', broCatLgLax[prp]))).to.be.true, lgProps)
-      expect(isBoolean(R.prop('_$_extraPropsAllowed', broCatLgLax))).to.be.true
+      expect(R.prop('_$_extraProps', broCatLgLax)).to.be.true
     })
 
     it('should validate single properties properly for lg with path', () => {
 
       // required props present
-      expect(LG.validateProp(broCatLg, 'id', myFamily)).to.be.true
-      expect(LG.validateProp(broCatLg, 'mood', myFamily)).to.be.true
+      expect(LG.propIsValid(broCatLg, 'id', myFamily)).to.be.true
+      expect(LG.propIsValid(broCatLg, 'mood', myFamily)).to.be.true
 
       // non required props not present
-      expect(LG.validateProp(broCatLg, 'name', myCat)).to.be.true
-      expect(LG.validateProp(broCatLg, 'color', myCat)).to.be.true
+      expect(LG.propIsValid(broCatLg, 'name', myCat)).to.be.true
+      expect(LG.propIsValid(broCatLg, 'color', myCat)).to.be.true
 
       // missing required props
       const emptyFamily = { myBrother: { hisPets: { brosCat: {} } } }
-      expect(LG.validateProp(broCatLg, 'id', emptyFamily)).to.be.false
-      expect(LG.validateProp(broCatLg, 'mood', emptyFamily)).to.be.false
+      expect(LG.propIsValid(broCatLg, 'id', emptyFamily)).to.be.false
+      expect(LG.propIsValid(broCatLg, 'mood', emptyFamily)).to.be.false
 
       // // invalid prop types
       const badFamily = { myBrother: { hisPets: { brosCat: { name: 123, color: { red:'red' }, id: [1], mood: true } } } }
-      expect(LG.validateProp(broCatLg, 'name', badFamily)).to.be.false
-      expect(LG.validateProp(broCatLg, 'color', badFamily)).to.be.false
-      expect(LG.validateProp(broCatLg, 'id', badFamily)).to.be.false
-      expect(LG.validateProp(broCatLg, 'mood', badFamily)).to.be.false
+      expect(LG.propIsValid(broCatLg, 'name', badFamily)).to.be.false
+      expect(LG.propIsValid(broCatLg, 'color', badFamily)).to.be.false
+      expect(LG.propIsValid(broCatLg, 'id', badFamily)).to.be.false
+      expect(LG.propIsValid(broCatLg, 'mood', badFamily)).to.be.false
     })
 
     it('should validate entire objects properly', () => {
@@ -893,7 +903,7 @@ function testMutability() {
     it('should clone arrays immutably', () => {
       const arr = ['a1', 'a2']
       const orig = { arr }
-      const lga = LG.create(['arr'])
+      const lga = LG.create({ propList: ['arr'] })
       const viewArr = LG.view(lga, 'arr')
       const setArr = LG.set(lga, 'arr')
       const cloneArr = LG.clone(lga)

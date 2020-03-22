@@ -48,7 +48,7 @@ function getBaseTestSet() {
   }
 
   const validationBase = {
-    validatorFnList: testSet.lgValidators,
+    validatorList: testSet.lgValidators,
     requiredList: testSet.lgRequired,
   }
   const validation = { ...validationBase, extraPropsAllowed: false }
@@ -715,32 +715,32 @@ function testValidation(catLg) {
 
 
     it('should add lg validators properly', () => {
-      R.forEach(prp => expect(RA.isFunction(R.prop('validatorFn', catLgWithValidators[prp]))).to.be.true, lgProps)
+      R.forEach(prp => expect(RA.isFunction(R.prop('validator', catLgWithValidators[prp]))).to.be.true, lgProps)
       R.forEach(prp => expect(RA.isBoolean(R.prop('required', catLgWithValidators[prp]))).to.be.true, lgProps)
-      expect(RA.isBoolean(R.prop('_$_extraPropsAllowed', catLgWithValidators))).to.be.true
+      expect(RA.isBoolean(R.prop('_$_extraProps', catLgWithValidators))).to.be.true
     })
 
     it('should validate single properties properly', () => {
 
       // required props present
-      expect(LG.validateProp(catLgWithValidators, 'name', myCat)).to.be.true
-      expect(LG.validateProp(catLgWithValidators, 'color', myCat)).to.be.true
+      expect(LG.propIsValid(catLgWithValidators, 'name', myCat)).to.be.true
+      expect(LG.propIsValid(catLgWithValidators, 'color', myCat)).to.be.true
 
       // non required props not present
-      expect(LG.validateProp(catLgWithValidators, 'id', myCat)).to.be.true
-      expect(LG.validateProp(catLgWithValidators, 'mood', myCat)).to.be.true
+      expect(LG.propIsValid(catLgWithValidators, 'id', myCat)).to.be.true
+      expect(LG.propIsValid(catLgWithValidators, 'mood', myCat)).to.be.true
 
       // missing required props
       const emptyCat = {}
-      expect(LG.validateProp(catLgWithValidators, 'name', emptyCat)).to.be.false
-      expect(LG.validateProp(catLgWithValidators, 'color', emptyCat)).to.be.false
+      expect(LG.propIsValid(catLgWithValidators, 'name', emptyCat)).to.be.false
+      expect(LG.propIsValid(catLgWithValidators, 'color', emptyCat)).to.be.false
 
       // invalid prop types
       const badCat = { name: {}, color: 2, id: 'id', mood: false }
-      expect(LG.validateProp(catLgWithValidators, 'name', badCat)).to.be.false
-      expect(LG.validateProp(catLgWithValidators, 'color', badCat)).to.be.false
-      expect(LG.validateProp(catLgWithValidators, 'id', badCat)).to.be.false
-      expect(LG.validateProp(catLgWithValidators, 'mood', badCat)).to.be.false
+      expect(LG.propIsValid(catLgWithValidators, 'name', badCat)).to.be.false
+      expect(LG.propIsValid(catLgWithValidators, 'color', badCat)).to.be.false
+      expect(LG.propIsValid(catLgWithValidators, 'id', badCat)).to.be.false
+      expect(LG.propIsValid(catLgWithValidators, 'mood', badCat)).to.be.false
     })
     it('should validate entire objects properly', () => {
       const strictLg = catLgWithValidators

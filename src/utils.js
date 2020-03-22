@@ -38,6 +38,22 @@ export const isNotBoolArrayOfLength = R.complement(isBoolArrayOfLength)
 export const isFnArrayOfLength = (len, array) => isFnArray(array) && R.equals(len, R.length(array))
 export const isNotFnrrayOfLength = R.complement(isFnArrayOfLength)
 
+
+// has
+// s -> {s: x} -> Boolean
+
+export const hasAny = (propNames, obj) => {
+  const hasProp = R.has(R.__, obj)
+  return R.any(hasProp, propNames)
+}
+export const hasAll = (propNames, obj) => {
+  const hasProp = R.has(R.__, obj)
+  return R.all(hasProp, propNames)
+}
+export const doesNotHaveAll = R.complement(hasAll)
+
+//export const hasAll =>
+
 // if prp is on source, return object with prp added to target with value source[prp]
 // '' -> {} -> {} -> {}
 export const pasteProp = R.curry((prp, source, target) =>
