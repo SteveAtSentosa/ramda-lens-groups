@@ -7,6 +7,8 @@
 import * as R from 'ramda'
 import * as RA from 'ramda-adjunct'
 import LGU from './utils'
+import * as VL from './validators'
+// import { isStr, isInstanceOf } from './validators'
 import {
   isLg,
   isLgWithValidators,
@@ -20,7 +22,6 @@ import {
   validateAllProps,
   getRequiredLgProps
 } from './internal'
-
 
 //*****************************************************************************
 // Lens Group Creation
@@ -69,23 +70,6 @@ export const create = lgInputs =>
 // Lens Group Validators
 //*****************************************************************************
 
-// Validate a property on an object based on lg validators
-// returns true if
-// * prop not required and is not present
-// * prop is present and satisfies lg validators
-// returns false if
-// * prop required but not present
-// * prop present and fails valitation fn
-// * invalid input
-// * lg has no validators
-// {lg} -> '' -> {} -> bool
-export const propIsValid = R.curry((lg, prp, obj) =>
-  isLgWithValidators(lg) &&
-  RA.isString(prp) &&
-  RA.isObj(obj) &&
-  RA.isObj(lg[prp])
-    ? validateOneProp(prp, obj, lg): false
-)
 
 // validate an object against a lens group validators
 // returns true if
@@ -96,14 +80,37 @@ export const propIsValid = R.curry((lg, prp, obj) =>
 // * any prop present fails its valiation fn
 // * extra props are present, but not allowed
 // {lg} -> {} -> bool
-export const validate = R.curry((lg, obj) =>
+export const isValid = R.curry((lg, obj) =>
   isLgWithValidators(lg) &&
   RA.isObj(obj)
     ? validateAllProps(lg, obj): false
 )
 
-export const requiredProps = lg =>
-  isLgWithValidators(lg) ? getRequiredLgProps(lg): []
+export const isInvalid = R.curry((lg, obj) => !isValid(lg, obj))
+
+// given an lg and an object, provide status on the property validation
+export const statusStr = R.curry((lg, obj) => 'eventually implement this')
+
+
+// Validate a property on an object based on lg validators
+// returns true if
+// * prop not required and is not present
+// * prop is present and satisfies lg validators
+// returns false if
+// * prop required but not present
+// * prop present and fails valitation fn
+// * invalid input
+// * lg has no validators
+// {lg} -> '' -> {} -> bool
+// TODO: remove or change to propIsPresentAndValid
+export const propIsValid = R.curry((lg, prp, obj) =>
+  isLgWithValidators(lg) &&
+  RA.isString(prp) &&
+  RA.isObj(obj) &&
+  RA.isObj(lg[prp])
+    ? validateOneProp(prp, obj, lg): false
+)
+
 
 //*****************************************************************************
 // Lens Group View/Set Operations
@@ -212,14 +219,14 @@ export const setTarget = R.curry((lg, targetVal, obj) =>
 // Return copy of toClone based on props targted by lg.
 // Only props that are present on toClone will be copied.
 // {lg} -> {} -> {}
-export const clone = (lg, toClone) =>
-  cloneWithFn(lg, 'view', LGU.identityOrPlacehoder(toClone))
+export const clone = R.curry((lg, toClone) =>
+  cloneWithFn(lg, 'view', LGU.identityOrPlacehoder(toClone)))
 
 // Return copy of toClone based on props targted by lg.
 // Props values present on toClone will be copied, otherwise they are defaulted
 // {lg} -> {} -> {}
-export const cloneWithDef = (lg, toClone) =>
-  cloneWithFn(lg, 'viewOrDef', LGU.identityOrPlacehoder(toClone))
+export const cloneWithDef = R.curry((lg, toClone) =>
+  cloneWithFn(lg, 'viewOrDef', LGU.identityOrPlacehoder(toClone)))
 
 // Return copy of toClone based on props targted by lg.
 // Props values present on toClone will be copied.
@@ -236,20 +243,20 @@ export const def = lg => cloneWithDef(lg, {})
 // defaults for props that are on lg but not on obj
 // Returns original obj on input errors
 // {lg} -> {} -> {}
-export const addDef = (lg, obj) =>
+export const addDef = R.curry((lg, obj) =>
   isLg(lg) &&
   RA.isObj(obj)
-    ? ({ ...LG.def(lg), ...obj }) : obj
+    ? ({ ...LG.def(lg), ...obj }) : obj)
 
 // Return an new object, with all of the original props on obj, plus
 // defaults for props that are on lg but not on obj and are not in noDefProps
 // Returns original obj on input errors
 // {lg} -> [''] -> {} -> {}
-export const addDefExcept = (lg, noDefProps, obj) =>
+export const addDefExcept = R.curry((lg, noDefProps, obj) =>
   isLg(lg) &&
   RA.isObj(obj) &&
   LGU.isStringArray(noDefProps)
-    ? addDef(remove(noDefProps, lg), obj) : obj
+    ? addDef(remove(noDefProps, lg), obj) : obj)
 
 //*****************************************************************************
 // Lens Group Specialization
@@ -310,10 +317,13 @@ export const isStr = R.curry((lg, prop, obj) => R.compose(RA.isString, view)(lg,
 export const path = lg => lg._$_path
 
 
-
-
-
 //*****************************************************************************
 
-export const LG = module.exports
+
+
+export const LG = {
+  ...module.exports,
+  ...VL
+}
+export * from './validators'
 export default LG

@@ -723,9 +723,9 @@ function testLensPathSpecialization() {
       expect(LG.propIsValid(synthesizedBroCatLg, 'name', emptyFamily)).to.be.false
       expect(LG.propIsValid(synthesizedBroCatLg, 'color', emptyFamily)).to.be.false
 
-      expect(LG.validate(synthesizedBroCatLg, synthesizedFamily)).to.be.true
-      expect(LG.validate(synthesizedBroCatLg, emptyFamily)).to.be.false
-      expect(LG.validate(synthesizedBroCatLg, badFamily)).to.be.false
+      expect(LG.isValid(synthesizedBroCatLg, synthesizedFamily)).to.be.true
+      expect(LG.isValid(synthesizedBroCatLg, emptyFamily)).to.be.false
+      expect(LG.isValid(synthesizedBroCatLg, badFamily)).to.be.false
     })
   })
 }
@@ -788,30 +788,30 @@ function testValidation() {
 
     it('should validate entire objects properly', () => {
       const myCatWithExtraProps = { ...myCat, iHate: 'dogs' }
-      expect(LG.validate(catLg, myCat)).to.be.true
-      expect(LG.validate(catLg, myCatWithExtraProps)).to.be.false
-      expect(LG.validate(catLgLax, myCatWithExtraProps)).to.be.true
+      expect(LG.isValid(catLg, myCat)).to.be.true
+      expect(LG.isValid(catLg, myCatWithExtraProps)).to.be.false
+      expect(LG.isValid(catLgLax, myCatWithExtraProps)).to.be.true
 
       const catWithMissingRequiredProp = { name: 'moodless' }
-      expect(LG.validate(catLg, catWithMissingRequiredProp)).to.be.false
-      expect(LG.validate(catLgLax, catWithMissingRequiredProp)).to.be.false
+      expect(LG.isValid(catLg, catWithMissingRequiredProp)).to.be.false
+      expect(LG.isValid(catLgLax, catWithMissingRequiredProp)).to.be.false
 
       const catWithAllTypes = myCatWithDef
-      expect(LG.validate(catLg, catWithAllTypes)).to.be.true
-      expect(LG.validate(catLgLax, catWithAllTypes)).to.be.true
+      expect(LG.isValid(catLg, catWithAllTypes)).to.be.true
+      expect(LG.isValid(catLgLax, catWithAllTypes)).to.be.true
 
       const catWithAllTypesAndExtra = { ...catWithAllTypes, iHate: 'dogs' }
-      expect(LG.validate(catLg, catWithAllTypesAndExtra)).to.be.false
-      expect(LG.validate(catLgLax, catWithAllTypesAndExtra)).to.be.true
+      expect(LG.isValid(catLg, catWithAllTypesAndExtra)).to.be.false
+      expect(LG.isValid(catLgLax, catWithAllTypesAndExtra)).to.be.true
 
-      expect(LG.validate(catLg, catWithBadIdType)).to.be.false
-      expect(LG.validate(catLg, catWithBadNameType)).to.be.false
-      expect(LG.validate(catLg, catWithBadMoodType)).to.be.false
-      expect(LG.validate(catLg, catWithBadMoodTypeAndExtraProps)).to.be.false
-      expect(LG.validate(catLgLax, catWithBadIdType)).to.be.false
-      expect(LG.validate(catLgLax, catWithBadNameType)).to.be.false
-      expect(LG.validate(catLgLax, catWithBadMoodType)).to.be.false
-      expect(LG.validate(catLgLax, catWithBadMoodTypeAndExtraProps)).to.be.false
+      expect(LG.isValid(catLg, catWithBadIdType)).to.be.false
+      expect(LG.isValid(catLg, catWithBadNameType)).to.be.false
+      expect(LG.isValid(catLg, catWithBadMoodType)).to.be.false
+      expect(LG.isValid(catLg, catWithBadMoodTypeAndExtraProps)).to.be.false
+      expect(LG.isValid(catLgLax, catWithBadIdType)).to.be.false
+      expect(LG.isValid(catLgLax, catWithBadNameType)).to.be.false
+      expect(LG.isValid(catLgLax, catWithBadMoodType)).to.be.false
+      expect(LG.isValid(catLgLax, catWithBadMoodTypeAndExtraProps)).to.be.false
     })
 
     // // lg with path
@@ -847,37 +847,37 @@ function testValidation() {
 
     it('should validate entire objects properly', () => {
       const myFamilyWithExtraProps = { myBrother: { hisPets: { brosCat: { ...brosCat, sex: 'female' } } } }
-      expect(LG.validate(broCatLg, myFamily)).to.be.true
-      expect(LG.validate(broCatLg, myFamilyWithExtraProps)).to.be.false
-      expect(LG.validate(broCatLgLax, myFamilyWithExtraProps)).to.be.true
+      expect(LG.isValid(broCatLg, myFamily)).to.be.true
+      expect(LG.isValid(broCatLg, myFamilyWithExtraProps)).to.be.false
+      expect(LG.isValid(broCatLgLax, myFamilyWithExtraProps)).to.be.true
 
       const catWithMissingRequiredProp = { name: 'moodless' }
-      expect(LG.validate(broCatLg, catWithMissingRequiredProp)).to.be.false
-      expect(LG.validate(broCatLgLax, catWithMissingRequiredProp)).to.be.false
+      expect(LG.isValid(broCatLg, catWithMissingRequiredProp)).to.be.false
+      expect(LG.isValid(broCatLgLax, catWithMissingRequiredProp)).to.be.false
 
       const myFamilyWithMissingProp = { myBrother: { hisPets: { brosCat: { id: 1, mood: 'sleepy' } } } }
-      expect(LG.validate(broCatLg, myFamilyWithMissingProp)).to.be.true
-      expect(LG.validate(broCatLgLax, myFamilyWithMissingProp)).to.be.true
+      expect(LG.isValid(broCatLg, myFamilyWithMissingProp)).to.be.true
+      expect(LG.isValid(broCatLgLax, myFamilyWithMissingProp)).to.be.true
 
       const myFamilyWithAllTypesAndExtra = { myBrother: { hisPets: { brosCat: { ...brosCatWithDef, sex: 'female' } } } }
-      expect(LG.validate(broCatLg, myFamilyWithAllTypesAndExtra)).to.be.false
-      expect(LG.validate(broCatLgLax, myFamilyWithAllTypesAndExtra)).to.be.true
+      expect(LG.isValid(broCatLg, myFamilyWithAllTypesAndExtra)).to.be.false
+      expect(LG.isValid(broCatLgLax, myFamilyWithAllTypesAndExtra)).to.be.true
 
       const familyWithBadIdType = { myBrother: { hisPets: { brosCat: catWithBadIdType } } }
       const familyWithBadNameType = { myBrother: { hisPets: { brosCat: catWithBadNameType } } }
       const familyWithBadMoodType = { myBrother: { hisPets: { brosCat: catWithBadMoodType } } }
       const familyWithBadColorType = { myBrother: { hisPets: { brosCat: catWithBadColorType } } }
       const fineFamily = { myBrother: { hisPets: { brosCat: brosCatWithDef } } }
-      expect(LG.validate(broCatLg, familyWithBadIdType)).to.be.false
-      expect(LG.validate(broCatLg, familyWithBadNameType)).to.be.false
-      expect(LG.validate(broCatLg, familyWithBadMoodType)).to.be.false
-      expect(LG.validate(broCatLg, familyWithBadColorType)).to.be.false
-      expect(LG.validate(broCatLgLax, familyWithBadIdType)).to.be.false
-      expect(LG.validate(broCatLgLax, familyWithBadNameType)).to.be.false
-      expect(LG.validate(broCatLgLax, familyWithBadMoodType)).to.be.false
-      expect(LG.validate(broCatLgLax, familyWithBadColorType)).to.be.false
-      expect(LG.validate(broCatLg, fineFamily)).to.be.true
-      expect(LG.validate(broCatLgLax, fineFamily)).to.be.true
+      expect(LG.isValid(broCatLg, familyWithBadIdType)).to.be.false
+      expect(LG.isValid(broCatLg, familyWithBadNameType)).to.be.false
+      expect(LG.isValid(broCatLg, familyWithBadMoodType)).to.be.false
+      expect(LG.isValid(broCatLg, familyWithBadColorType)).to.be.false
+      expect(LG.isValid(broCatLgLax, familyWithBadIdType)).to.be.false
+      expect(LG.isValid(broCatLgLax, familyWithBadNameType)).to.be.false
+      expect(LG.isValid(broCatLgLax, familyWithBadMoodType)).to.be.false
+      expect(LG.isValid(broCatLgLax, familyWithBadColorType)).to.be.false
+      expect(LG.isValid(broCatLg, fineFamily)).to.be.true
+      expect(LG.isValid(broCatLgLax, fineFamily)).to.be.true
     })
   })
 }
