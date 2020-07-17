@@ -58,7 +58,7 @@
     "build:es": "cross-env BABEL_ENV=es babel src --out-dir es",
     "build:umd": "webpack --mode=development --output-filename=index.js",
     "build:umd:min": "webpack --mode=production --output-filename=index.min.js",
-    "build": "yarn clean && yarn build:umd && yarn build:umd:min && yarn build:es",
+    "build": "yarn clean && yarn build:umd && yarn build:umd:min && yarn build:cjs && yarn build:es",
     "prepublish": "npm run clean && npm test && npm run build",
     "test": "mocha --r ./.register.babel.js",
     "testDocs": "babel-node docs/testDocExamples.js; babel-node docs/testApiExamples.js",
